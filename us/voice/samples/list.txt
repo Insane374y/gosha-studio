@@ -1,0 +1,25 @@
+ 1. Zee - Deep, Dark, Velvety | male, young, narrative_story | voice_id 4MQev7xxYPuQHlUvk604
+      Deep, Dark and Velvety. A lower-range voice with a warm, rich color and delivery.
+ 2. Valf - Gentle Meditation & Mindfulness | male, young, narrative_story | voice_id O81CmFFFXeIsBcFvQ5ln
+      A warm, gentle American voice designed for guided meditation, mindfulness, breathing exercises, affirmations, and relaxation. Its soothing, 
+ 3. Victor - Halloween Horror Calm Narrator | male, young, narrative_story | voice_id GoV1V2hQd1doxcYR2SuA
+      Perfect for narration and storytelling. The voice is low-pitched, calm, and measured, making it a strong choice for immersive storytelling a
+ 4. Wyman - The Storyteller | male, middle-aged, narrative_story | voice_id KYpkPJwl1dpLc9QpMwnO
+      A deep, warm voice that brings stories to life with expressive narration and very natural dialogue. Perfect for audiobooks, fiction, mysteri
+ 5. Gordon - Sincere, Warm & Clear | male, young, narrative_story | voice_id H1bMkFdFKqJn79KaV9qt
+      My voice has a warm, gentle, and comforting feel. Perfectly suited for narration, educational videos, and commercials—especially children's 
+ 6. Pavel - Chill | male, middle_aged, narrative_story | voice_id 6snJrF97DYWqBYLypcZj
+      Good Voice for your video.
+ 7. Brian McManaman - Articulate, Mature | male, young, narrative_story | voice_id 7JKSHBXJND62BxGKvDdb
+      Voice Actor & Narrator: Mature, articulate, and resonant voice. Specializing in narrations that require depth, emotional connection, and aut
+ 8. Diego - Friendly, Conversational | male, young, narrative_story | voice_id v2B6bRGVWhlh1ZpeWMGw
+      A warm, natural, and friendly young American male voice. With an engaging, conversational delivery and particular diction, it is ideal for p
+ 9. Deven - Gentle | male, young, narrative_story | voice_id CUBn4sl2utubMGORuxbm
+      Deep, Calm and Friendly.
+10. Corey - Narration | male, middle_aged, narrative_story | voice_id NLqp4zRQStOmnPajKwYM
+      A deep, calm American male voice with a casual, natural delivery, ideal for instructional content, documentary narration, and clear, engagin
+11. Oulbig - Deep, Bold | male, middle_aged, narrative_story | voice_id cKkFlYSYb7EJ6Suuummw
+      A bold, deep, and energetic male voice with a rich, resonant tone that commands attention instantly. Oulbig delivers a powerful yet fluid pe
+12. Taylor - Undertone Positive | male, young, narrative_story | voice_id mD5Gs5YK5V5RXQyi3REz
+      A relatable grounded voice that remains reassuring throughout your project.
+пробы → voice/samples/
