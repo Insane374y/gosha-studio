@@ -1,0 +1,37 @@
+# 03 — What if Fobbin could see like a fly?
+
+Переделка `fly-short/script/voice.txt` под США: тапок → мухобойка. Ставка: суперспособность. ~65 с.
+
+## Первый кадр (0–1 с)
+Крупно: мухобойка летит прямо в лицо Fobbin — и мир замедляется. Он спокойно зевает.
+
+## Текст на экране
+- 0.0–1.0 с: **WHAT IF YOU SAW LIKE A FLY?**
+- 0:35: **YOU: ~60 FPS** / **FLY: ~250 FPS**
+
+## Озвучка (EN)
+What if Fobbin could see like a fly? This flyswatter would never hit him.
+
+He has time to yawn, scratch his nose, and step aside.
+
+Imagine waking up with fly eyes. Water from the faucet pours like honey. A baseball crawls across the sky like a snail.
+
+The kitchen light isn't on anymore — it's flickering like a strobe. Your favorite show? A slideshow.
+
+So did you become super fast? Nope. You're just as slow. Your eyes are simply taking more frames.
+
+Think of slow-mo on your phone. More frames per second — and a falling drop takes forever.
+
+Human eyes catch around sixty flickers per second. A housefly — about two hundred fifty. To a fly, your hand moves about four times slower.
+
+That's why swatting a fly feels impossible. It sees the swing coming — and has already picked where to jump.
+
+Fobbin finally relaxes.
+
+Then Biscuit leaps for the fly. And lands right on his face.
+
+## Перевод (RU)
+Что если Fobbin будет видеть как муха? Эта мухобойка его никогда не достанет. Он успевает зевнуть, почесать нос и отойти. Представь: ты проснулся с глазами мухи. Вода из крана льётся как мёд. Бейсбольный мяч ползёт по небу как улитка. Лампа на кухне уже не горит, а мигает как стробоскоп. Любимый сериал — слайд-шоу. Ты стал супербыстрым? Нет, ты такой же медленный. Просто твои глаза снимают больше кадров. Вспомни замедленную съёмку на телефоне: больше кадров в секунду — и капля падает целую вечность. Глаз человека различает около шестидесяти мерцаний в секунду, муха — около двухсот пятидесяти. Для неё твоя рука движется в четыре раза медленнее. Поэтому муху так трудно прихлопнуть: она видит замах и уже выбрала, куда прыгать. Fobbin наконец расслабляется. И тут Бисквит прыгает за мухой — и приземляется ему прямо на лицо.
+
+## Факты (проверить перед озвучкой)
+- Порог слияния мерцаний: человек ~60 Гц, комнатная муха ~250 Гц (разные исследования дают разные цифры — в ролике «around / about»).
