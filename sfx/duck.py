@@ -1,11 +1,12 @@
 # Автоприглушение эффектов под голосом: в каждом окне 40 мс эффекты не громче голоса минус 8 дБ.
 #   python3 duck.py sfx.wav voice.mp3 atempo(1|0)
-import sys, subprocess, numpy as np
+import os, sys, subprocess, tempfile, numpy as np
 from scipy.io import wavfile
 from scipy.ndimage import uniform_filter1d, minimum_filter1d
 sfx_p, voice_p, tempo = sys.argv[1], sys.argv[2], sys.argv[3] == "1"
-subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", voice_p, "-af", "atempo=1.1" if tempo else "anull", "-ar", "44100", "-ac", "1", "/tmp/claude-0/duckv.wav"], check=True)
-sr, v = wavfile.read("/tmp/claude-0/duckv.wav"); v = v.astype(np.float32) / 32768
+tmp = os.path.join(tempfile.gettempdir(), "duckv.wav")
+subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", voice_p, "-af", "atempo=1.1" if tempo else "anull", "-ar", "44100", "-ac", "1", tmp], check=True)
+sr, v = wavfile.read(tmp); v = v.astype(np.float32) / 32768
 sr, s = wavfile.read(sfx_p); s = s.astype(np.float32); mono = s[:, 0]
 n = len(mono); v = np.pad(v, (0, max(0, n - len(v))))[:n]
 W = int(0.04 * sr); nw = n // W

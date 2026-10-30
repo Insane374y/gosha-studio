@@ -1,6 +1,6 @@
 # Муха: время раскадровки «старое» — переводим в время голоса через TIMEMAP.
-import json, re, numpy as np
-_txt = open("/home/claude/fly-short/render/captions.js", encoding="utf-8").read()
+import json, pathlib, re, numpy as np
+_txt = (pathlib.Path(__file__).resolve().parents[2] / "fly-short/render/captions.js").read_text(encoding="utf-8")
 _pairs = json.loads(re.search(r"const TIMEMAP = (\[.*?\]);", _txt, re.S).group(1))
 _old = np.array([p[0] for p in _pairs]); _new = np.array([p[1] for p in _pairs])
 def TIME_MAP(t): return float(np.interp(t, _old, _new, left=t + (_new[0] - _old[0]), right=t + (_new[-1] - _old[-1])))

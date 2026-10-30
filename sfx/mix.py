@@ -1,9 +1,9 @@
 # Звуковая дорожка эффектов для ролика: авто (склейки, всплывающие надписи, титр) + ручные сюжетные события.
 #   python3 mix.py <video_js> <cues_py> <out_sfx_wav> <duration>
-import re, sys, importlib.util, json
+import os, re, sys, importlib.util, json
 import numpy as np
 from scipy.io import wavfile
-sys.path.insert(0, "/home/claude/sfx")
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import sfx as S
 
 def auto_cues(js_text, time_map=None):

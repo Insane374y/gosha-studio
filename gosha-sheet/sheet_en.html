@@ -1,0 +1,90 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><style>html,body{margin:0;background:#f6efe2}canvas{display:block}</style></head>
+<body><canvas id="c" width="2400" height="1720"></canvas>
+<script src="doodle.js"></script>
+<script>
+// Модельный лист Fobbin.
+const GOSHA = { body: "#f5c518", stripe: "#1f3a6e", hair: "curly", hairColor: "#a0522d", glasses: "#d6334a", backpack: "#3aa676", shoes: "#2f6fd6", plaster: true };
+const c = document.getElementById("c"), g = c.getContext("2d");
+const off = document.createElement("canvas"); off.width = CW; off.height = CH; const o = off.getContext("2d");
+const FONT = '"DejaVu Sans", sans-serif';
+
+// фон: тёплая бумага + сетка в клетку
+g.fillStyle = "#f6efe2"; g.fillRect(0, 0, c.width, c.height);
+g.strokeStyle = "rgba(42,29,26,0.06)"; g.lineWidth = 2;
+for (let x = 0; x < c.width; x += 40) { g.beginPath(); g.moveTo(x, 0); g.lineTo(x, c.height); g.stroke(); }
+for (let y = 0; y < c.height; y += 40) { g.beginPath(); g.moveTo(0, y); g.lineTo(c.width, y); g.stroke(); }
+
+const fig = (look, pose, cx, baseY, scale) => {
+  drawDoodle(o, look, pose);
+  g.drawImage(off, cx - (CW * scale) / 2, baseY - CH * scale, CW * scale, CH * scale);
+};
+const text = (t, x, y, size, col = "#2a1d1a", align = "center", weight = "bold") => {
+  g.font = `${weight} ${size}px ${FONT}`; g.textAlign = align; g.textBaseline = "alphabetic"; g.fillStyle = col; g.fillText(t, x, y);
+};
+const outlined = (t, x, y, size, fill, align = "left") => {
+  g.font = `bold ${size}px ${FONT}`; g.textAlign = align; g.lineJoin = "round";
+  g.lineWidth = size * 0.16; g.strokeStyle = "#2a1d1a"; g.strokeText(t, x, y); g.fillStyle = fill; g.fillText(t, x, y);
+};
+const card = (x, y, w, h, fill = "#fffaf0") => {
+  g.fillStyle = "rgba(42,29,26,0.12)"; g.beginPath(); g.roundRect(x + 8, y + 10, w, h, 28); g.fill();
+  g.fillStyle = fill; g.strokeStyle = "#2a1d1a"; g.lineWidth = 5; g.beginPath(); g.roundRect(x, y, w, h, 28); g.fill(); g.stroke();
+};
+
+// заголовок
+outlined("FOBBIN", 70, 150, 116, "#f5c518");
+text("star of the channel “What if, Fobbin?”", 640, 100, 44, "#2a1d1a", "left");
+text("character sheet · doodle style", 640, 148, 30, "rgba(42,29,26,0.55)", "left", "normal");
+
+// большой Гоша
+card(50, 210, 720, 1160, "#fff4e2");
+g.fillStyle = "#cfe9dc"; g.beginPath(); g.arc(410, 700, 300, 0, Math.PI * 2); g.fill();
+fig(GOSHA, { expr: "grin", lookX: 0.4, handB: [0.47, HIP + 0.66], bendB: 0.25, tilt: -0.05 }, 410, 1190, 1.22);
+// выноска
+g.fillStyle = "#fff"; g.strokeStyle = "#2a1d1a"; g.lineWidth = 5;
+g.beginPath(); g.roundRect(80, 250, 420, 110, 30); g.fill(); g.stroke();
+g.beginPath(); g.moveTo(300, 358); g.lineTo(340, 420); g.lineTo(350, 358); g.closePath(); g.fill(); g.stroke();
+g.fillStyle = "#fff"; g.fillRect(304, 352, 44, 10);
+text("Okay… what if?", 290, 320, 38);
+
+// палитра и приметы
+const sw = [["#f5c518", "T-shirt"], ["#a0522d", "curls"], ["#d6334a", "glasses"], ["#3aa676", "backpack"]];
+sw.forEach(([col, name], i) => {
+  const x = 100 + i * 165;
+  g.fillStyle = col; g.strokeStyle = "#2a1d1a"; g.lineWidth = 4; g.beginPath(); g.roundRect(x, 1225, 70, 70, 16); g.fill(); g.stroke();
+  text(name, x + 35, 1335, 26);
+});
+card(50, 1400, 720, 270, "#fffaf0");
+const notes = ["• messy ginger curls — recognizable instantly", "• huge round red glasses", "• yellow T-shirt with a blue stripe", "• green backpack “for every occasion”", "• bandage on the cheek — from past experiments"];
+notes.forEach((t, i) => text(t, 80, 1458 + i * 46, 27, "#2a1d1a", "left", "normal"));
+
+// эмоции
+text("EMOTIONS", 820, 250, 44, "#2a1d1a", "left");
+const EM = [
+  ["proud", "confident", { handF: [-0.3, HIP + 0.2], handB: [0.3, HIP + 0.2], bendF: -0.35, bendB: 0.35 }],
+  ["smug", "smirk", { lookX: 0.6, tilt: 0.06 }],
+  ["realize", "what if?", { handF: [-0.4, HEAD_Z + 0.08], bendF: -0.2 }],
+  ["nervous", "nervous", { handB: [0.37, HEAD_Z + 0.12], bendB: 0.35 }],
+  ["shock", "shock", { handF: [-0.47, HEAD_Z + 0.12], handB: [0.47, HEAD_Z + 0.12], bendF: -0.25, bendB: 0.25 }],
+  ["laugh", "laughing", { handF: [-0.1, HIP + 0.14], handB: [0.12, HIP + 0.16], tilt: 0.1 }],
+  ["stern", "stern", { lean: 0.04 }],
+  ["blank", "blank", { lookX: 0 }],
+];
+EM.forEach(([ex, name, extra], i) => {
+  const col = i % 4, row = Math.floor(i / 4);
+  const x = 820 + col * 385, y = 280 + row * 420;
+  card(x, y, 355, 395);
+  fig(GOSHA, { expr: ex, ...extra }, x + 177, y + 340, 0.56);
+  text(name, x + 177, y + 378, 30);
+});
+
+// имя и фраза канала
+text("NAME & CATCHPHRASE", 820, 1170, 44, "#2a1d1a", "left");
+card(820, 1200, 1510, 470, "#fff4e2");
+outlined("FOB-in", 880, 1340, 96, "#f5c518");
+text("how to say the name", 880, 1395, 30, "rgba(42,29,26,0.6)", "left", "normal");
+outlined("“What if Fobbin…?”", 880, 1540, 84, "#ffffff");
+text("every video opens with this line", 880, 1595, 30, "rgba(42,29,26,0.6)", "left", "normal");
+fig(GOSHA, { expr: "realize", handF: [-0.4, HEAD_Z + 0.08], bendF: -0.2 }, 2120, 1640, 0.62);
+document.title = "done";
+</script></body></html>
