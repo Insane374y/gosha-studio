@@ -6,9 +6,7 @@ const cvs = document.getElementById("c"), G = cvs.getContext("2d");
 const LANG = "en";
 // надпись по ключу из TEXT (text_NAME.js); если ключа нет — сам ключ, чтобы ошибку было видно в кадре
 const L = (key) => (TEXT.labels[key] ? TEXT.labels[key][LANG] : `?${key}?`);
-const FOBBIN_LOOK = GOSHA_LOOK;   // образ тот же, поменялось только имя
 const fobbin = (extra) => Object.assign({ id: "fobbin", seed: 3, lookStyle: FOBBIN_LOOK, pos: [0, 0, 0] }, extra);
-const fobbinSprite = goshaSprite;
 const lerpPath = (t, t0, t1, a, b) => v3.lerp(a, b, clamp((t - t0) / (t1 - t0), 0, 1));
 const HZ = HEAD_ZM;
 const fly = (sc, t, p, o = {}) => sc.sprite(p, -0.05, (g, x, y, k) => drawFly(g, x + Math.sin(t * 23) * 2, y + Math.cos(t * 19) * 2, k, t, o));

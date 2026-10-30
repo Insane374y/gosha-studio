@@ -2,7 +2,7 @@
 <canvas id="c" width="1080" height="1080"></canvas>
 <script src="doodle.js"></script>
 <script>
-const GOSHA = { body: "#f5c518", stripe: "#1f3a6e", hair: "curly", hairColor: "#a0522d", glasses: "#d6334a", backpack: "#3aa676", shoes: "#2f6fd6", plaster: true };
+const FOBBIN = { body: "#f5c518", stripe: "#1f3a6e", hair: "curly", hairColor: "#a0522d", glasses: "#d6334a", backpack: "#3aa676", shoes: "#2f6fd6", plaster: true };
 const c = document.getElementById("c"), g = c.getContext("2d");
 // фон: бирюзовый круг с лучами
 const bg = g.createRadialGradient(540, 520, 60, 540, 540, 760); bg.addColorStop(0, "#5fd3c6"); bg.addColorStop(1, "#1f8a8f");
@@ -15,7 +15,7 @@ g.font = '900 210px "Inter Display", Inter, sans-serif'; g.textAlign = "center";
 for (const [x, y, r, col] of [[175, 250, -0.35, "#f5c518"], [905, 300, 0.3, "#ffffff"]]) { g.save(); g.translate(x, y); g.rotate(r); g.lineWidth = 22; g.strokeStyle = "#20180f"; g.strokeText("?", 0, 0); g.fillStyle = col; g.fillText("?", 0, 0); g.restore(); }
 // Гоша: крупно голова и плечи
 const cv = document.createElement("canvas"); cv.width = CW; cv.height = CH;
-drawDoodle(cv.getContext("2d"), GOSHA, { expr: "grin", lookX: 0, tilt: -0.06, flyEyes: 0,
+drawDoodle(cv.getContext("2d"), FOBBIN, { expr: "grin", lookX: 0, tilt: -0.06, flyEyes: 0,
  });
 // голова в плоскости: центр на высоте 0.97 м, плоскость 1.4×2.1 м → 560×840 пикселей (400 px/м)
 const s = 2.05; // масштаб

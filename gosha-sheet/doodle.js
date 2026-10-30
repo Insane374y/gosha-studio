@@ -1,4 +1,4 @@
-// Дудл-персонаж (порт src/doodle.ts) + доработки для Гоши: вихор, худи со знаком «?», бантик для Ники, кот Бублик.
+// Дудл-персонаж Fobbin (порт src/doodle.ts): кудри, очки, рюкзак, пластырь.
 const INK = "#2a1d1a";
 const PLANE_W = 1.4, PLANE_H = 2.1;
 const CW = 560, CH = Math.round((CW * PLANE_H) / PLANE_W);
@@ -214,40 +214,3 @@ function drawDoodle(ctx, look, p) {
   limb(shF, hF, p.bendF ?? 0.12); hand(hF);
 }
 
-// Кот Бублик: рыжий, полосатый, вечно довольный.
-function drawCat(ctx, x, y, s, mood = "smug") {
-  const L = (w) => { ctx.lineWidth = w * s; ctx.strokeStyle = INK; };
-  ctx.save(); ctx.translate(x, y); ctx.lineCap = "round"; ctx.lineJoin = "round";
-  ctx.fillStyle = "rgba(0,0,0,0.18)"; ctx.beginPath(); ctx.ellipse(0, 0, 70 * s, 9 * s, 0, 0, Math.PI * 2); ctx.fill();
-  // хвост
-  L(16); ctx.strokeStyle = INK; ctx.beginPath(); ctx.moveTo(45 * s, -25 * s); ctx.bezierCurveTo(110 * s, -30 * s, 105 * s, -110 * s, 70 * s, -115 * s); ctx.stroke();
-  L(10); ctx.strokeStyle = "#e8873a"; ctx.stroke();
-  // тело
-  ctx.fillStyle = "#e8873a"; L(5); ctx.beginPath(); ctx.ellipse(0, -48 * s, 58 * s, 48 * s, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-  ctx.fillStyle = "#fbf3e4"; ctx.beginPath(); ctx.ellipse(-5 * s, -38 * s, 28 * s, 32 * s, 0, 0, Math.PI * 2); ctx.fill();
-  ctx.strokeStyle = "#a9521c"; ctx.lineWidth = 6 * s; for (const a of [-0.4, 0, 0.4]) { ctx.beginPath(); ctx.arc(30 * s, -50 * s, 30 * s, a - 0.15, a + 0.15); ctx.stroke(); }
-  // лапки
-  ctx.fillStyle = "#fbf3e4"; L(4); for (const dx of [-25, 12]) { ctx.beginPath(); ctx.ellipse(dx * s, -6 * s, 15 * s, 9 * s, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke(); }
-  // голова
-  const hy = -120 * s;
-  ctx.fillStyle = "#e8873a"; L(5);
-  for (const sx of [-1, 1]) { ctx.beginPath(); ctx.moveTo(sx * 18 * s, hy - 38 * s); ctx.lineTo(sx * 46 * s, hy - 70 * s); ctx.lineTo(sx * 50 * s, hy - 18 * s); ctx.closePath(); ctx.fill(); ctx.stroke();
-    ctx.fillStyle = "#f2a9a0"; ctx.beginPath(); ctx.moveTo(sx * 26 * s, hy - 38 * s); ctx.lineTo(sx * 43 * s, hy - 58 * s); ctx.lineTo(sx * 44 * s, hy - 28 * s); ctx.closePath(); ctx.fill(); ctx.fillStyle = "#e8873a"; }
-  ctx.beginPath(); ctx.ellipse(0, hy, 55 * s, 46 * s, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-  ctx.strokeStyle = "#a9521c"; ctx.lineWidth = 6 * s; for (const dx of [-12, 0, 12]) { ctx.beginPath(); ctx.moveTo(dx * s, hy - 44 * s); ctx.lineTo(dx * 0.8 * s, hy - 28 * s); ctx.stroke(); }
-  ctx.fillStyle = "#fbf3e4"; ctx.beginPath(); ctx.ellipse(0, hy + 18 * s, 26 * s, 18 * s, 0, 0, Math.PI * 2); ctx.fill();
-  // глаза: довольный прищур
-  ctx.fillStyle = INK;
-  for (const sx of [-1, 1]) {
-    if (mood === "smug") { ctx.beginPath(); ctx.ellipse(sx * 21 * s, hy - 2 * s, 8 * s, 7 * s, 0, 0, Math.PI * 2); ctx.fill(); L(4); ctx.beginPath(); ctx.moveTo(sx * 31 * s, hy - 7 * s); ctx.lineTo(sx * 11 * s, hy - 7 * s); ctx.stroke(); }
-    else { ctx.beginPath(); ctx.ellipse(sx * 21 * s, hy - 2 * s, 9 * s, 12 * s, 0, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.arc(sx * 21 * s - 3 * s, hy - 7 * s, 3 * s, 0, 7); ctx.fill(); ctx.fillStyle = INK; }
-  }
-  ctx.fillStyle = "#e46b78"; ctx.beginPath(); ctx.moveTo(-6 * s, hy + 10 * s); ctx.lineTo(6 * s, hy + 10 * s); ctx.lineTo(0, hy + 17 * s); ctx.closePath(); ctx.fill();
-  L(3.5); ctx.beginPath(); ctx.moveTo(0, hy + 17 * s); ctx.quadraticCurveTo(-6 * s, hy + 26 * s, -13 * s, hy + 20 * s); ctx.moveTo(0, hy + 17 * s); ctx.quadraticCurveTo(6 * s, hy + 26 * s, 13 * s, hy + 20 * s); ctx.stroke();
-  L(2.5); for (const sx of [-1, 1]) for (const dy of [-3, 6]) { ctx.beginPath(); ctx.moveTo(sx * 30 * s, hy + 14 * s); ctx.lineTo(sx * 72 * s, hy + (14 + dy * 2) * s); ctx.stroke(); }
-  // ошейник с бубликом-медальоном
-  L(4); ctx.fillStyle = "#2f6fd6"; ctx.beginPath(); ctx.roundRect(-34 * s, hy + 38 * s, 68 * s, 10 * s, 5 * s); ctx.fill(); ctx.stroke();
-  ctx.fillStyle = "#e6b25a"; ctx.beginPath(); ctx.arc(0, hy + 56 * s, 10 * s, 0, 7); ctx.fill(); ctx.stroke();
-  ctx.fillStyle = "#e8873a"; ctx.beginPath(); ctx.arc(0, hy + 56 * s, 3.5 * s, 0, 7); ctx.fill(); ctx.stroke();
-  ctx.restore();
-}

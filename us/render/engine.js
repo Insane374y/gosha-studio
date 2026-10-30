@@ -185,7 +185,7 @@ function drawActor(scene, t, a) {
     bigEyes: valAt(tt, a.bigEyes, false), eyeDirs: a.eyeL ? [smoothTrack(tt, a.eyeL), smoothTrack(tt, a.eyeR)] : null, tongue: a.tongue ? smoothTrack(tt, a.tongue)[0] : 0,
   };
   if (a.blinkHold && valAt(tt, a.blinkHold, false)) pose.blink = true;
-  const key = a.id ?? "gosha";
+  const key = a.id ?? "fobbin";
   const cv = actorCanvases[key] ?? (actorCanvases[key] = Object.assign(document.createElement("canvas"), { width: CW, height: CH }));
   drawDoodle(cv.getContext("2d"), a.lookStyle, pose);
   const pos = a.walk ? (() => { const [x, z] = smoothTrack(t, a.walk); return [x, 0, z]; })() : a.pos;

@@ -4,7 +4,7 @@
 <script src="doodle.js"></script>
 <script>
 // Модельный лист Fobbin.
-const GOSHA = { body: "#f5c518", stripe: "#1f3a6e", hair: "curly", hairColor: "#a0522d", glasses: "#d6334a", backpack: "#3aa676", shoes: "#2f6fd6", plaster: true };
+const FOBBIN = { body: "#f5c518", stripe: "#1f3a6e", hair: "curly", hairColor: "#a0522d", glasses: "#d6334a", backpack: "#3aa676", shoes: "#2f6fd6", plaster: true };
 const c = document.getElementById("c"), g = c.getContext("2d");
 const off = document.createElement("canvas"); off.width = CW; off.height = CH; const o = off.getContext("2d");
 const FONT = '"DejaVu Sans", sans-serif';
@@ -39,7 +39,7 @@ text("character sheet · doodle style", 640, 148, 30, "rgba(42,29,26,0.55)", "le
 // большой Гоша
 card(50, 210, 720, 1160, "#fff4e2");
 g.fillStyle = "#cfe9dc"; g.beginPath(); g.arc(410, 700, 300, 0, Math.PI * 2); g.fill();
-fig(GOSHA, { expr: "grin", lookX: 0.4, handB: [0.47, HIP + 0.66], bendB: 0.25, tilt: -0.05 }, 410, 1190, 1.22);
+fig(FOBBIN, { expr: "grin", lookX: 0.4, handB: [0.47, HIP + 0.66], bendB: 0.25, tilt: -0.05 }, 410, 1190, 1.22);
 // выноска
 g.fillStyle = "#fff"; g.strokeStyle = "#2a1d1a"; g.lineWidth = 5;
 g.beginPath(); g.roundRect(80, 250, 420, 110, 30); g.fill(); g.stroke();
@@ -74,7 +74,7 @@ EM.forEach(([ex, name, extra], i) => {
   const col = i % 4, row = Math.floor(i / 4);
   const x = 820 + col * 385, y = 280 + row * 420;
   card(x, y, 355, 395);
-  fig(GOSHA, { expr: ex, ...extra }, x + 177, y + 340, 0.56);
+  fig(FOBBIN, { expr: ex, ...extra }, x + 177, y + 340, 0.56);
   text(name, x + 177, y + 378, 30);
 });
 
@@ -85,6 +85,6 @@ outlined("FOB-in", 880, 1340, 96, "#f5c518");
 text("how to say the name", 880, 1395, 30, "rgba(42,29,26,0.6)", "left", "normal");
 outlined("“What if Fobbin…?”", 880, 1540, 84, "#ffffff");
 text("every video opens with this line", 880, 1595, 30, "rgba(42,29,26,0.6)", "left", "normal");
-fig(GOSHA, { expr: "realize", handF: [-0.4, HEAD_Z + 0.08], bendF: -0.2 }, 2120, 1640, 0.62);
+fig(FOBBIN, { expr: "realize", handF: [-0.4, HEAD_Z + 0.08], bendF: -0.2 }, 2120, 1640, 0.62);
 document.title = "done";
 </script></body></html>

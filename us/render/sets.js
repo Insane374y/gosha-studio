@@ -1,5 +1,5 @@
 // Общие локации и картинки для роликов про Гошу.
-const GOSHA_LOOK = { body: "#f5c518", stripe: "#1f3a6e", hair: "curly", hairColor: "#a0522d", glasses: "#d6334a", backpack: "#3aa676", shoes: "#2f6fd6", plaster: true };
+const FOBBIN_LOOK = { body: "#f5c518", stripe: "#1f3a6e", hair: "curly", hairColor: "#a0522d", glasses: "#d6334a", backpack: "#3aa676", shoes: "#2f6fd6", plaster: true };
 // ================================================================= картинки для плоскостей
 function pWindow(t, ball) {
   return (g, w, h) => {
@@ -362,9 +362,9 @@ function drawGlobe(g, x, y, r, t, o = {}) { g.save(); g.translate(x, y);
   g.fillStyle = "rgba(255,255,255,0.15)"; g.beginPath(); g.arc(-r * 0.35, -r * 0.35, r * 0.7, 0, 7); g.fill(); g.fillStyle = "rgba(0,0,30,0.35)"; g.beginPath(); g.arc(r * 0.5, r * 0.4, r * 1.0, 0, 7); g.fill(); g.restore();
   g.beginPath(); g.arc(0, 0, r, 0, 7); g.stroke(); g.restore(); }
 function spaceBg(g, t, seed = 1) { g.fillStyle = "#070a1c"; g.fillRect(0, 0, W, H); g.fillStyle = "#fff"; for (let i = 0; i < 160; i++) { const x = ((i * 7919 + seed * 13) % 1080), y = ((i * 104729) % 1920), r = (i % 5 === 0) ? 3 : 1.6; g.globalAlpha = 0.5 + 0.5 * Math.sin(t * 2 + i); g.beginPath(); g.arc(x, y, r, 0, 7); g.fill(); } g.globalAlpha = 1; }
-function goshaSprite(g, x, y, h, pose) {   // плоский Гоша для экранных сцен (космос, схемы)
+function fobbinSprite(g, x, y, h, pose) {   // плоский Fobbin для экранных сцен (космос, схемы)
   const cv = drawSprite._c || (drawSprite._c = Object.assign(document.createElement("canvas"), { width: CW, height: CH }));
-  drawDoodle(cv.getContext("2d"), GOSHA_LOOK, Object.assign({ expr: "neutral", blink: false, bonk: 0, breathe: 0 }, pose));
+  drawDoodle(cv.getContext("2d"), FOBBIN_LOOK, Object.assign({ expr: "neutral", blink: false, bonk: 0, breathe: 0 }, pose));
   g.drawImage(cv, x - (h * PLANE_W / PLANE_H) / 2, y - h, h * PLANE_W / PLANE_H, h);
 }
 function drawSprite() {}
