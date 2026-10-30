@@ -1,0 +1,7 @@
+*.mp4
+*.wav
+out/
+checks/
+final/
+__pycache__/
+node_modules/

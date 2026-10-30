@@ -1,0 +1,96 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><style>html,body{margin:0;background:#f6efe2}canvas{display:block}</style></head>
+<body><canvas id="c" width="2400" height="1720"></canvas>
+<script src="doodle.js"></script>
+<script>
+const GOSHA = { body: "#f5c518", stripe: "#1f3a6e", hair: "curly", hairColor: "#a0522d", glasses: "#d6334a", backpack: "#3aa676", shoes: "#2f6fd6", plaster: true };
+const NIKA = { body: "#8f63d2", hair: "long", bow: "#f2c230", shoes: "#2fb3a6" };
+const c = document.getElementById("c"), g = c.getContext("2d");
+const off = document.createElement("canvas"); off.width = CW; off.height = CH; const o = off.getContext("2d");
+const FONT = '"DejaVu Sans", sans-serif';
+
+// фон: тёплая бумага + сетка в клетку
+g.fillStyle = "#f6efe2"; g.fillRect(0, 0, c.width, c.height);
+g.strokeStyle = "rgba(42,29,26,0.06)"; g.lineWidth = 2;
+for (let x = 0; x < c.width; x += 40) { g.beginPath(); g.moveTo(x, 0); g.lineTo(x, c.height); g.stroke(); }
+for (let y = 0; y < c.height; y += 40) { g.beginPath(); g.moveTo(0, y); g.lineTo(c.width, y); g.stroke(); }
+
+const fig = (look, pose, cx, baseY, scale) => {
+  drawDoodle(o, look, pose);
+  g.drawImage(off, cx - (CW * scale) / 2, baseY - CH * scale, CW * scale, CH * scale);
+};
+const text = (t, x, y, size, col = "#2a1d1a", align = "center", weight = "bold") => {
+  g.font = `${weight} ${size}px ${FONT}`; g.textAlign = align; g.textBaseline = "alphabetic"; g.fillStyle = col; g.fillText(t, x, y);
+};
+const outlined = (t, x, y, size, fill, align = "left") => {
+  g.font = `bold ${size}px ${FONT}`; g.textAlign = align; g.lineJoin = "round";
+  g.lineWidth = size * 0.16; g.strokeStyle = "#2a1d1a"; g.strokeText(t, x, y); g.fillStyle = fill; g.fillText(t, x, y);
+};
+const card = (x, y, w, h, fill = "#fffaf0") => {
+  g.fillStyle = "rgba(42,29,26,0.12)"; g.beginPath(); g.roundRect(x + 8, y + 10, w, h, 28); g.fill();
+  g.fillStyle = fill; g.strokeStyle = "#2a1d1a"; g.lineWidth = 5; g.beginPath(); g.roundRect(x, y, w, h, 28); g.fill(); g.stroke();
+};
+
+// заголовок
+outlined("ГОША", 70, 150, 128, "#f5c518");
+text("главный герой канала «А что если?»", 560, 100, 44, "#2a1d1a", "left");
+text("лист персонажа · дудл-стиль · v2", 560, 148, 30, "rgba(42,29,26,0.55)", "left", "normal");
+
+// большой Гоша
+card(50, 210, 720, 1160, "#fff4e2");
+g.fillStyle = "#cfe9dc"; g.beginPath(); g.arc(410, 700, 300, 0, Math.PI * 2); g.fill();
+fig(GOSHA, { expr: "grin", lookX: 0.4, handB: [0.47, HIP + 0.66], bendB: 0.25, tilt: -0.05 }, 410, 1190, 1.22);
+// выноска
+g.fillStyle = "#fff"; g.strokeStyle = "#2a1d1a"; g.lineWidth = 5;
+g.beginPath(); g.roundRect(80, 250, 420, 110, 30); g.fill(); g.stroke();
+g.beginPath(); g.moveTo(300, 358); g.lineTo(340, 420); g.lineTo(350, 358); g.closePath(); g.fill(); g.stroke();
+g.fillStyle = "#fff"; g.fillRect(304, 352, 44, 10);
+text("Окей… а что если?", 290, 320, 38);
+
+// палитра и приметы
+const sw = [["#f5c518", "футболка"], ["#a0522d", "кудри"], ["#d6334a", "очки"], ["#3aa676", "рюкзак"]];
+sw.forEach(([col, name], i) => {
+  const x = 100 + i * 165;
+  g.fillStyle = col; g.strokeStyle = "#2a1d1a"; g.lineWidth = 4; g.beginPath(); g.roundRect(x, 1225, 70, 70, 16); g.fill(); g.stroke();
+  text(name, x + 35, 1335, 26);
+});
+card(50, 1400, 720, 270, "#fffaf0");
+const notes = ["• рыжая копна кудрей — узнаётся сразу", "• огромные круглые красные очки", "• жёлтая футболка с синей полосой", "• зелёный рюкзак «на все случаи жизни»", "• пластырь на щеке — следы прошлых опытов"];
+notes.forEach((t, i) => text(t, 80, 1458 + i * 46, 27, "#2a1d1a", "left", "normal"));
+
+// эмоции
+text("ЭМОЦИИ", 820, 250, 44, "#2a1d1a", "left");
+const EM = [
+  ["proud", "уверен", { handF: [-0.3, HIP + 0.2], handB: [0.3, HIP + 0.2], bendF: -0.35, bendB: 0.35 }],
+  ["smug", "ухмылка", { lookX: 0.6, tilt: 0.06 }],
+  ["realize", "а что если?", { handF: [-0.4, HEAD_Z + 0.08], bendF: -0.2 }],
+  ["nervous", "нервничает", { handB: [0.37, HEAD_Z + 0.12], bendB: 0.35 }],
+  ["shock", "шок", { handF: [-0.47, HEAD_Z + 0.12], handB: [0.47, HEAD_Z + 0.12], bendF: -0.25, bendB: 0.25 }],
+  ["laugh", "хохочет", { handF: [-0.1, HIP + 0.14], handB: [0.12, HIP + 0.16], tilt: 0.1 }],
+  ["stern", "строгий", { lean: 0.04 }],
+  ["blank", "ступор", { lookX: 0 }],
+];
+EM.forEach(([ex, name, extra], i) => {
+  const col = i % 4, row = Math.floor(i / 4);
+  const x = 820 + col * 385, y = 280 + row * 420;
+  card(x, y, 355, 395);
+  fig(GOSHA, { expr: ex, ...extra }, x + 177, y + 340, 0.56);
+  text(name, x + 177, y + 378, 30);
+});
+
+// семья
+text("ОКРУЖЕНИЕ", 820, 1170, 44, "#2a1d1a", "left");
+card(820, 1200, 1510, 470, "#fff4e2");
+g.strokeStyle = "rgba(42,29,26,0.35)"; g.setLineDash([14, 12]); g.lineWidth = 3;
+g.beginPath(); g.moveTo(860, 1600); g.lineTo(2290, 1600); g.stroke(); g.setLineDash([]);
+fig(GOSHA, { expr: "grin", handB: [0.32, HIP + 0.14] }, 1010, 1600, 0.4);
+fig(NIKA, { expr: "smug", lookX: -0.9, handF: [-0.18, HIP + 0.22], handB: [0.18, HIP + 0.22], bendF: -0.4, bendB: 0.4 }, 1330, 1600, 0.36);
+drawCat(g, 1650, 1600, 0.8, "smug");
+text("Гоша", 1010, 1648, 32); text("Ника, сестра", 1330, 1648, 32); text("кот Бублик", 1650, 1648, 32);
+const roles = ["скептик: закатывает", "глаза и всё знает", "появляется в самый", "неподходящий момент"];
+text("Ника — младшая сестра,", 1860, 1330, 30, "#2a1d1a", "left", "bold");
+text(roles[0], 1860, 1372, 28, "#2a1d1a", "left", "normal"); text(roles[1], 1860, 1410, 28, "#2a1d1a", "left", "normal");
+text("Бублик — кот-«ружьё»:", 1860, 1480, 30, "#2a1d1a", "left", "bold");
+text(roles[2], 1860, 1522, 28, "#2a1d1a", "left", "normal"); text(roles[3], 1860, 1560, 28, "#2a1d1a", "left", "normal");
+document.title = "done";
+</script></body></html>

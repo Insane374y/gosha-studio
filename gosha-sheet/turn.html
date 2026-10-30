@@ -1,0 +1,48 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><style>html,body{margin:0;background:#f6efe2}canvas{display:block}</style></head>
+<body><canvas id="c" width="2400" height="2000"></canvas>
+<script src="turn.js"></script>
+<script>
+const GOSHA = { body: "#f5c518", stripe: "#1f3a6e", hair: "curly", hairColor: "#a0522d", glasses: "#d6334a", backpack: "#3aa676", shoes: "#2f6fd6", plaster: true };
+const NIKA = { body: "#8f63d2", hair: "long", hairColor: "#1b1615", bow: "#f2c230", shoes: "#2fb3a6" };
+const c = document.getElementById("c"), g = c.getContext("2d");
+const FONT = '"DejaVu Sans", sans-serif';
+g.fillStyle = "#f6efe2"; g.fillRect(0, 0, c.width, c.height);
+g.strokeStyle = "rgba(42,29,26,0.06)"; g.lineWidth = 2;
+for (let x = 0; x < c.width; x += 40) { g.beginPath(); g.moveTo(x, 0); g.lineTo(x, c.height); g.stroke(); }
+for (let y = 0; y < c.height; y += 40) { g.beginPath(); g.moveTo(0, y); g.lineTo(c.width, y); g.stroke(); }
+const text = (t, x, y, size, col = "#2a1d1a", align = "center", weight = "bold") => { g.font = `${weight} ${size}px ${FONT}`; g.textAlign = align; g.fillStyle = col; g.fillText(t, x, y); };
+const outlined = (t, x, y, size, fill) => { g.font = `bold ${size}px ${FONT}`; g.textAlign = "left"; g.lineJoin = "round"; g.lineWidth = size * 0.16; g.strokeStyle = "#2a1d1a"; g.strokeText(t, x, y); g.fillStyle = fill; g.fillText(t, x, y); };
+const card = (x, y, w, h, fill) => {
+  g.fillStyle = "rgba(42,29,26,0.12)"; g.beginPath(); g.roundRect(x + 8, y + 10, w, h, 28); g.fill();
+  g.fillStyle = fill; g.strokeStyle = "#2a1d1a"; g.lineWidth = 5; g.beginPath(); g.roundRect(x, y, w, h, 28); g.fill(); g.stroke();
+};
+const guides = (ys) => { g.save(); g.setLineDash([12, 12]); g.lineWidth = 2.5;
+  for (const [y, name] of ys) { g.strokeStyle = "rgba(42,29,26,0.28)"; g.beginPath(); g.moveTo(330, y); g.lineTo(2160, y); g.stroke();
+    text(name, 2290, y + 8, 22, "rgba(42,29,26,0.55)", "right", "normal"); } g.restore(); };
+
+outlined("МОДЕЛЬНЫЙ ЛИСТ", 60, 120, 84, "#f5c518");
+text("Гоша, Ника и кот Бублик — спереди, 3/4, сбоку, сзади", 1040, 105, 38, "#2a1d1a", "left");
+const COLS = [600, 1040, 1480, 1920], VIEWS = [["СПЕРЕДИ", 0, "front"], ["3/4", Math.PI / 4, "q34"], ["СБОКУ", Math.PI / 2, "side"], ["СЗАДИ", Math.PI, "back"]];
+VIEWS.forEach(([n], i) => text(n, COLS[i], 200, 36, "#2a1d1a"));
+
+// ряд Гоши
+card(40, 230, 2280, 650, "#fff4e2");
+const gb = 840, gS = 380;
+guides([[gb - (THEAD + TR) * gS, "макушка"], [gb - THEAD * gS, "глаза"], [gb - (THIP + TH) * gS, "плечи"], [gb - THIP * gS, "пояс"], [gb, "пол"]]);
+VIEWS.forEach(([, a], i) => drawPerson(g, GOSHA, COLS[i], gb, gS, a));
+text("ГОША", 180, 520, 52, "#2a1d1a"); text("главный герой", 180, 565, 28, "rgba(42,29,26,0.6)", "center", "normal");
+// ряд Ники
+card(40, 910, 2280, 560, "#f3ecff");
+const nb = 1430, nS = 330;
+guides([[nb - (THEAD + TR) * nS, "макушка"], [nb - THEAD * nS, "глаза"], [nb - (THIP + TH) * nS, "плечи"], [nb, "пол"]]);
+VIEWS.forEach(([, a], i) => drawPerson(g, NIKA, COLS[i], nb, nS, a));
+text("НИКА", 180, 1160, 52, "#2a1d1a"); text("младшая сестра", 180, 1205, 28, "rgba(42,29,26,0.6)", "center", "normal");
+text("ниже Гоши на ~15%", 180, 1245, 24, "rgba(42,29,26,0.6)", "center", "normal");
+// ряд Бублика
+card(40, 1500, 2280, 440, "#fff1e6");
+const cb = 1880, cs = 1.45;
+guides([[cb - 190 * cs, "уши"], [cb - 122 * cs, "глаза"], [cb, "пол"]]);
+VIEWS.forEach(([, , v], i) => drawCatView(g, COLS[i], cb, cs, v));
+text("БУБЛИК", 180, 1700, 52, "#2a1d1a"); text("кот", 180, 1745, 28, "rgba(42,29,26,0.6)", "center", "normal");
+</script></body></html>
