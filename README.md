@@ -6,7 +6,7 @@
 - Аудитория — США. Ролики на английском.
 - Каждый ролик начинается с фразы **«What if Fobbin …»**.
 - Длина ролика 1:00–1:10.
-- Fobbin — единственный постоянный персонаж (внешность — модельный лист `gosha-sheet/sheet_en.html`). Второстепенные герои безымянные и появляются один раз.
+- Fobbin — единственный постоянный персонаж (внешность — модельный лист `character/sheet.html`). Второстепенные герои безымянные и появляются один раз.
 - Голос: английский голос ElevenLabs — ещё не выбран.
 - Звук: голос, тихая музыка (0.11), SFX по действию + свуши (0.65, с даккингом под голос), loudnorm −14 LUFS.
 
@@ -31,10 +31,10 @@
 | `us/scripts/` | Сценарии: крючок первого кадра, текст на экране, озвучка EN, перевод RU, факты для проверки |
 | `us/render/` | Сборка кадров: `engine.js` (2.5D-движок на canvas), `doodle.js` (персонаж), `sets.js` (декорации), `common.js` (кадр, титр, субтитры); на каждый ролик — `v_NAME.js` (шоты), `text_NAME.js` (надписи en/ru), `cap_NAME.js` (субтитры), `index_NAME.html` |
 | `us/tools/` | `align.py` (субтитры по голосу), `check.py` (автопроверка), `frames.py` (кадры и видео), `music.mjs` (музыка) |
-| `gosha-sheet/` | Модельный лист Fobbin: `sheet_en.html` → `fobbin_sheet.png`, рисовалка персонажа `doodle.js` |
+| `character/` | Модельный лист Fobbin: `sheet.html` → `fobbin_sheet.png` (`python3 render.py sheet.html fobbin_sheet.png 2400 1720`), рисовалка персонажа `doodle.js` |
 | `sfx/` | Синтез звуковых эффектов (`sfx.py`), авторасстановка (`mix.py`), приглушение под голос (`duck.py`) |
 | `tools/` | `yt_search.py` — поиск трендов на американском YouTube |
-| `avatar/` | Аватарка канала |
+| `avatar/` | Аватарка канала: `avatar.html` → `fobbin_avatar.png` |
 
 ## Как собрать ролик
 Нужны Python 3 (numpy, scipy, pillow, playwright), Chromium для Playwright, ffmpeg, Node 22. Все команды — из папки `us/`.
