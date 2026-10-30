@@ -1,0 +1,15 @@
+name: Daniel - Warm, Clear & Dynamic Guide
+gender: male
+age: young
+accent: british
+language: en
+use_case: informative_educational
+category: high_quality
+descriptive: professional
+description: A youthful, professional male voice with a warm, friendly character and crisp, natural clarity. Daniel sounds confident, approachable and engaging, with a dynamic delivery that keeps listeners interested without feeling over-produced.
+Ideal for audio guides, city tours, travel content, eLearning, explainers, documentaries, corporate narration, educational content, museums, attractions and guided experiences.
+cloned_by_count: 15520
+usage_character_count_1y: 40774452
+free_users_allowed: True
+rate: 1
+проба → voice/samples/info_ynTHHllfDmGsZ3G8QJt9.mp3
