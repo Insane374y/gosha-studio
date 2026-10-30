@@ -3,6 +3,7 @@
 # Запускать из папки us/:
 #   python3 tools/voice.py voices [--gender male] [--search NAME]   → голоса ElevenLabs с американским акцентом
 #                                                                       + пробы в voice/samples/ (бесплатно)
+#   python3 tools/voice.py info VOICE_ID                             → описание одного голоса ElevenLabs + проба (бесплатно)
 #   python3 tools/voice.py setup VOICE_ID                            → шаблон с этим голосом (один раз)
 #   python3 tools/voice.py NAME [--speed 1.05] [--no-fit]            → scripts/NAME.md → voice/NAME.mp3 (платно)
 # После озвучки длина подгоняется к цели 1:10–1:15 лёгким изменением темпа (не больше ±8 %);
@@ -58,6 +59,17 @@ def cmd_voices(a):
     print("пробы → voice/samples/")
 
 
+def cmd_info(a):
+    data = api("GET", "/voices/elevenlabs/library", query={"search": a.voice_id, "page": 0, "page_size": 10})
+    hit = [v for v in data["voices"] if v["voice_id"] == a.voice_id]
+    if not hit: sys.exit(f"голос {a.voice_id} в каталоге ElevenLabs через поиск не найден (найдено других: {len(data['voices'])})")
+    v = hit[0]
+    for k in ("name", "gender", "age", "accent", "language", "use_case", "category", "descriptive", "description", "cloned_by_count", "usage_character_count_1y", "free_users_allowed", "rate"):
+        if v.get(k) not in (None, ""): print(f"{k}: {v[k]}")
+    if v.get("preview_url"):
+        download(v["preview_url"], ROOT / f"voice/samples/info_{a.voice_id}.mp3"); print("проба → voice/samples/info_" + a.voice_id + ".mp3")
+
+
 def cmd_setup(a):
     data = api("POST", "/templates", {"service_key": "elevenlabs", "name": "Fobbin narrator", "config": {"tts_settings": {
         "mode": "mode_v1", "model_id": MODEL, "voice_id": a.voice_id, "advanced_voice_settings": True,
@@ -102,12 +114,13 @@ def cmd_say(a):
 
 
 if __name__ == "__main__":
-    if len(sys.argv) > 1 and sys.argv[1] not in ("voices", "setup", "-h", "--help"):
+    if len(sys.argv) > 1 and sys.argv[1] not in ("voices", "info", "setup", "-h", "--help"):
         p = argparse.ArgumentParser(); p.add_argument("name"); p.add_argument("--speed", type=float); p.add_argument("--no-fit", action="store_true")
         cmd_say(p.parse_args())
     else:
         p = argparse.ArgumentParser(); sub = p.add_subparsers(dest="cmd", required=True)
         v = sub.add_parser("voices"); v.add_argument("--gender", choices=["male", "female"]); v.add_argument("--search")
         v.add_argument("--use-case", default="narrative_story"); v.add_argument("--limit", type=int, default=15)
+        i = sub.add_parser("info"); i.add_argument("voice_id")
         s = sub.add_parser("setup"); s.add_argument("voice_id")
-        a = p.parse_args(); {"voices": cmd_voices, "setup": cmd_setup}[a.cmd](a)
+        a = p.parse_args(); {"voices": cmd_voices, "info": cmd_info, "setup": cmd_setup}[a.cmd](a)
