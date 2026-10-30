@@ -1,5 +1,5 @@
 // Процедурная фоновая музыка (без внешних файлов и лицензий — можно монетизировать). Звуковых эффектов нет.
-//   node tools/music.mjs <durationSec> [playful|tense|calm]   → voice/music.wav (запускать из папки us/)
+//   node tools/music.mjs <durationSec> [playful|tense|calm] [файл]   → voice/music.wav (запускать из папки us/)
 import fs from "node:fs";
 
 const SR = 44100;
@@ -52,6 +52,7 @@ const music = (mood, dur) => {
   return [L, R];
 };
 
-const [, , a, b] = process.argv;
-fs.mkdirSync("voice", { recursive: true }); writeWav("voice/music.wav", music(b ?? "playful", Number(a ?? 65)));
-console.log("music -> voice/music.wav");
+const [, , a, b, out] = process.argv;
+const file = out ?? "voice/music.wav";
+fs.mkdirSync(file.split("/").slice(0, -1).join("/") || ".", { recursive: true }); writeWav(file, music(b ?? "playful", Number(a ?? 65)));
+console.log("music ->", file);

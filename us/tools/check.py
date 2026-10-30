@@ -2,7 +2,7 @@
 #   python3 tools/check.py NAME          (запускать из папки us/)
 # Проверяет:
 #   1. длину: по голосу voice/NAME.mp3, а если его ещё нет — оценку по числу слов в scripts/NAME.md;
-#      норма 1:00–1:10 (правило канала);
+#      правило канала: строго не короче 1:00 (иначе ошибка), цель 1:10–1:15 (иначе предупреждение);
 #   2. титр: titleEnd ≤ 1.0 с;
 #   3. надписи: в text_NAME.js у каждого ключа есть en и в en нет кириллицы; в кадре нет ключей-заглушек «?ключ?»;
 #   (браузер: если Playwright не находит свой Chromium — укажи путь в CHROMIUM_PATH)
@@ -10,8 +10,10 @@
 import json, os, pathlib, re, subprocess, sys
 from playwright.sync_api import sync_playwright
 ROOT = pathlib.Path(__file__).resolve().parent.parent
-MIN_S, MAX_S = 60.0, 70.0
-WPM = (150, 175)   # обычный и быстрый темп английского голоса, слов в минуту
+MIN_S = 60.0                # короче — нельзя
+TARGET = (70.0, 75.0)       # средняя длина ролика
+TAIL = 0.7                  # видео длиннее голоса на эту хвостовую паузу (как в align.py)
+WPM = (160, 175)            # обычный и быстрый темп английского голоса, слов в минуту
 name = sys.argv[1]
 problems, notes = [], []
 
@@ -27,18 +29,19 @@ def words_in_script():
 voice = ROOT / f"voice/{name}.mp3"
 if voice.exists():
     dur = float(subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", str(voice)], capture_output=True, text=True).stdout)
-    notes.append(f"длина голоса: {dur:.1f} с")
-    if dur < MIN_S: problems.append(f"голос короче минуты ({dur:.1f} с) — добавить событие или ставку, не «воду»")
-    if dur > MAX_S: problems.append(f"голос длиннее 1:10 ({dur:.1f} с) — сократить объяснения")
+    video = dur + TAIL
+    notes.append(f"длина ролика по голосу: {video:.1f} с (цель {TARGET[0]:.0f}–{TARGET[1]:.0f} с)")
+    if video < MIN_S: problems.append(f"ролик короче минуты ({video:.1f} с) — добавить событие или ставку, не «воду»")
+    elif not TARGET[0] <= video <= TARGET[1]: notes.append(f"⚠ длина вне цели 1:10–1:15 — {'добавить событие' if video < TARGET[0] else 'сократить объяснения'}")
 else:
     n = words_in_script()
     if n is None: problems.append(f"нет ни voice/{name}.mp3, ни раздела «Озвучка (EN)» в scripts/{name}.md")
     else:
-        slow, fast = n / WPM[0] * 60, n / WPM[1] * 60
-        notes.append(f"голоса ещё нет; {n} слов ≈ {fast:.0f}–{slow:.0f} с")
-        if slow < MIN_S: problems.append(f"даже при медленном темпе ролик короче минуты ({slow:.0f} с) — добавить ~{int((MIN_S - slow) / 60 * WPM[0]) + 1} слов")
-        elif fast < MIN_S: notes.append(f"при быстром голосе (175 сл/мин) будет {fast:.0f} с — может не дотянуть до минуты")
-        if fast > MAX_S: problems.append(f"даже при быстром темпе длиннее 1:10 ({fast:.0f} с) — сократить")
+        norm, fast = n / WPM[0] * 60 + TAIL, n / WPM[1] * 60 + TAIL
+        notes.append(f"голоса ещё нет; {n} слов ≈ {norm:.0f} с при обычном темпе, {fast:.0f} с при быстром")
+        lo, hi = [int((x - TAIL) / 60 * WPM[0]) for x in TARGET]
+        if fast < MIN_S: problems.append(f"при быстром голосе ролик будет короче минуты ({fast:.0f} с) — нужно {lo}–{hi} слов")
+        elif not TARGET[0] <= norm <= TARGET[1]: notes.append(f"⚠ при обычном темпе длина вне цели 1:10–1:15 — нужно {lo}–{hi} слов")
 
 # 2–4. страница ролика
 page = ROOT / f"render/index_{name}.html"
