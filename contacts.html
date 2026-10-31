@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Контакты — РоллетПро</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body data-page="contacts.html">
+  <div id="header"></div>
+
+  <div class="container">
+    <div class="breadcrumbs"><a href="index.html">Главная</a><span>›</span>Контакты</div>
+    <h1>Контакты</h1>
+
+    <div class="contacts" data-stagger>
+      <div class="contacts__box">
+        <p><b>Телефон:</b><br><a data-phone></a></p>
+        <p><b>Почта:</b><br><a data-email></a></p>
+        <p><b>Адрес офиса и шоурума:</b><br><span data-address></span></p>
+        <p><b>Режим работы:</b><br><span data-hours></span></p>
+        <h3 style="margin-top:24px">Напишите нам</h3>
+        <form class="form" data-form>
+          <input type="text" name="name" placeholder="Ваше имя" required>
+          <input type="tel" name="phone" placeholder="+7 (___) ___-__-__" required>
+          <textarea name="message" rows="4" placeholder="Ваш вопрос"></textarea>
+          <button class="btn" type="submit">Отправить</button>
+          <p class="form__note">Нажимая кнопку, вы соглашаетесь на обработку персональных данных.</p>
+        </form>
+      </div>
+      <div class="map-stub">Здесь будет карта<br>(Яндекс.Карты — вставляется кодом из конструктора карт)</div>
+    </div>
+  </div>
+
+  <div id="footer"></div>
+
+  <script src="js/data.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
