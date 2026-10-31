@@ -6,6 +6,7 @@
 #   python3 tools/voice.py info VOICE_ID                             → описание одного голоса ElevenLabs + проба (бесплатно)
 #   python3 tools/voice.py setup VOICE_ID                            → шаблон с этим голосом (один раз)
 #   python3 tools/voice.py NAME [--speed 1.05] [--no-fit]            → scripts/NAME.md → voice/NAME.mp3 (платно)
+#   python3 tools/voice.py fetch NAME ORDER_ID [--no-fit]            → скачать уже готовый заказ (бесплатно, без повторной озвучки)
 # После озвучки длина подгоняется к цели 1:10–1:15 лёгким изменением темпа (не больше ±8 %);
 # исходник остаётся в voice/NAME_raw.mp3. --no-fit — оставить как есть.
 import argparse, json, os, pathlib, re, subprocess, sys, time, urllib.error, urllib.request
@@ -100,21 +101,32 @@ def cmd_say(a):
         if s in FAILED or s == "partially_completed": sys.exit(f"заказ {oid}: {s} — смотри в кабинете Lumean (повтор оплачивается заново)")
         time.sleep(5)
     else: sys.exit(f"заказ {oid} не завершился за 20 минут — проверь в кабинете")
+    finish(a.name, o, a.no_fit)
+
+
+def cmd_fetch(a):
+    o = api("GET", f"/orders/{a.order}")
+    if o["status"] not in FINAL: sys.exit(f"заказ {a.order}: статус {o['status']} — ещё не готов или не выполнен")
+    finish(a.name, o, a.no_fit)
+
+
+def finish(name, o, no_fit):
+    # скачать готовый файл заказа и подогнать длину; файлы заказа хранятся у Lumean 7 дней (s3.lumean.app)
     url = api("POST", "/storage/url", {"path": o["result"]["files"][0], "download": True})["url"]
-    raw = ROOT / f"voice/{a.name}_raw.mp3"; out = ROOT / f"voice/{a.name}.mp3"
+    raw = ROOT / f"voice/{name}_raw.mp3"; out = ROOT / f"voice/{name}.mp3"
     download(url, raw)
     dur = ffdur(raw); video = dur + TAIL; tempo = 1.0
-    if not a.no_fit and not TARGET[0] <= video <= TARGET[1]:
+    if not no_fit and not TARGET[0] <= video <= TARGET[1]:
         want = (sum(TARGET) / 2) - TAIL
         tempo = min(1 + MAX_FIT, max(1 - MAX_FIT, dur / want))
     subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", str(raw), "-af", f"atempo={tempo:.4f}", "-b:a", "192k", str(out)], check=True)
     fin = ffdur(out) + TAIL
     print(f"голос: {dur:.1f} с, темп ×{tempo:.3f} → ролик {fin:.1f} с" + ("" if TARGET[0] <= fin <= TARGET[1] else " ⚠ вне 1:10–1:15 — поправить текст или --speed"))
-    print("дальше: python3 tools/align.py", a.name)
+    print("дальше: python3 tools/align.py", name)
 
 
 if __name__ == "__main__":
-    if len(sys.argv) > 1 and sys.argv[1] not in ("voices", "info", "setup", "-h", "--help"):
+    if len(sys.argv) > 1 and sys.argv[1] not in ("voices", "info", "setup", "fetch", "-h", "--help"):
         p = argparse.ArgumentParser(); p.add_argument("name"); p.add_argument("--speed", type=float); p.add_argument("--no-fit", action="store_true")
         cmd_say(p.parse_args())
     else:
@@ -123,4 +135,5 @@ if __name__ == "__main__":
         v.add_argument("--use-case", default="narrative_story"); v.add_argument("--limit", type=int, default=15)
         i = sub.add_parser("info"); i.add_argument("voice_id")
         s = sub.add_parser("setup"); s.add_argument("voice_id")
-        a = p.parse_args(); {"voices": cmd_voices, "info": cmd_info, "setup": cmd_setup}[a.cmd](a)
+        f = sub.add_parser("fetch"); f.add_argument("name"); f.add_argument("order"); f.add_argument("--no-fit", action="store_true")
+        a = p.parse_args(); {"voices": cmd_voices, "info": cmd_info, "setup": cmd_setup, "fetch": cmd_fetch}[a.cmd](a)
