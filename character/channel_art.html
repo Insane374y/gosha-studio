@@ -6,7 +6,7 @@
 // Аватарка и шапка канала «What if, Fobbin?»: Fobbin в лаборатории. Наша графика (дудл-персонаж, чёрный контур),
 // но свет и материалы «реалистичные». Свет — только от естественного источника (лампа): колбы цветные, но не светятся.
 // Глубина резкости,
-// лучи, пылинки, зерно. Режим задаётся в адресе: ?mode=avatar (1500×1500) или ?mode=banner (2560×1440).
+// лучи, зерно. Режим задаётся в адресе: ?mode=avatar (1500×1500) или ?mode=banner (2560×1440).
 // Аватар рисуется в логических координатах 800×800 и масштабе SC — сразу в высоком разрешении, без растягивания.
 const MODE = new URLSearchParams(location.search).get("mode") ?? "banner";
 const [CWD, CHT] = MODE === "avatar" ? [800, 800] : [2560, 1440], SC = MODE === "avatar" ? 1500 / 800 : 1;
@@ -116,8 +116,7 @@ function scene() {
   g.save(); g.globalCompositeOperation = "screen"; g.filter = B(10); g.globalAlpha = 0.9; g.drawImage(lc, 0, 0, CWD, CHT); g.filter = B(40); g.globalAlpha = 0.8; g.drawImage(lc, 0, 0, CWD, CHT); g.restore();
   // передний план: размытая колба у края — глубина
   if (MODE === "banner") { const [pc, px] = layer(); flask(px, CWD - 170, CHT + 60, 2.2, "#3fd28a", "erlen"); flask(px, 160, CHT + 80, 2.0, "#f2a33c", "round"); g.save(); g.filter = B(9); put(g, pc); g.restore(); }
-  // пылинки, виньетка, зерно
-  g.save(); g.globalCompositeOperation = "screen"; for (let i = 0; i < (MODE === "avatar" ? 40 : 120); i++) { const x = R() * CWD, y = R() * CHT, r = (1.5 + R() * 3.5) * (MODE === "avatar" ? 1 : 1.4); const gr = g.createRadialGradient(x, y, 0, x, y, r * 3); gr.addColorStop(0, `rgba(255,236,200,${0.25 + R() * 0.35})`); gr.addColorStop(1, "rgba(255,236,200,0)"); g.fillStyle = gr; g.fillRect(x - r * 3, y - r * 3, r * 6, r * 6); } g.restore();
+  // виньетка и лёгкое зерно (пылинки убраны)
   const vg = g.createRadialGradient(CWD / 2, CHT / 2, Math.min(CWD, CHT) * 0.35, CWD / 2, CHT / 2, Math.max(CWD, CHT) * 0.75); vg.addColorStop(0, "rgba(0,0,0,0)"); vg.addColorStop(1, "rgba(0,0,0,0.55)"); g.fillStyle = vg; g.fillRect(0, 0, CWD, CHT);
   const im = g.getImageData(0, 0, cv.width, cv.height), d = im.data; for (let i = 0; i < d.length; i += 4) { const n = (R() - 0.5) * 14; d[i] += n; d[i + 1] += n; d[i + 2] += n; } g.putImageData(im, 0, 0);
   if (MODE === "banner") title(cx);

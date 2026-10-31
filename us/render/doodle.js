@@ -131,8 +131,6 @@ function drawDoodle(ctx, look, p) {
     ctx.fillStyle = hc; for (const [x, y, rr] of curls) { ctx.beginPath(); ctx.arc(x, y, rr, 0, Math.PI * 2); ctx.fill(); }
     ctx.strokeStyle = shade(hc, 0.55); ctx.lineWidth = 0.008 * K;
     for (const [x, y, rr] of curls) { ctx.beginPath(); ctx.arc(x + rr * 0.1, y + rr * 0.1, rr * 0.5, Math.PI * 0.2, Math.PI * 1.1); ctx.stroke(); }
-    ctx.strokeStyle = "rgba(255,255,255,0.55)"; ctx.lineWidth = 0.01 * K;
-    for (const [x, y, rr] of curls.slice(11, 16)) { ctx.beginPath(); ctx.arc(x, y, rr * 0.6, Math.PI * 1.2, Math.PI * 1.5); ctx.stroke(); }
   } else {
   ctx.beginPath(); ctx.arc(0, 0, r * 1.05, Math.PI, Math.PI * 2);
   const fr = 0.46;
@@ -153,7 +151,6 @@ function drawDoodle(ctx, look, p) {
     for (const s of [-1, 1]) { ctx.beginPath(); ctx.moveTo(r * 0.62, -r * 0.82); ctx.lineTo(r * 0.62 + s * r * 0.3, -r * 0.82 - r * 0.2); ctx.lineTo(r * 0.62 + s * r * 0.3, -r * 0.82 + r * 0.2); ctx.closePath(); ctx.fill(); ctx.stroke(); }
     ctx.beginPath(); ctx.arc(r * 0.62, -r * 0.82, r * 0.08, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
   }
-  stroke(0.012, "#ffffff"); ctx.beginPath(); ctx.arc(-r * 0.15, -r * 0.2, r * 0.75, Math.PI * 1.25, Math.PI * 1.5); ctx.stroke();
   let eyes = E.eyes;
   if (p.blink && ["oval", "wide", "lid"].includes(eyes)) eyes = "closed";
   const lx = (p.lookX ?? 0) * r;
