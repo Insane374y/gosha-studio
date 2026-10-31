@@ -1,0 +1,147 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><style>html,body{margin:0;background:#111}canvas{display:block}</style></head>
+<body><canvas id="c"></canvas>
+<script src="../us/render/doodle.js"></script>
+<script>
+// Аватарка и шапка канала «What if, Fobbin?»: Fobbin в лаборатории. Наша графика (дудл-персонаж, чёрный контур),
+// но свет и материалы «реалистичные»: тёмная лаборатория, светящиеся колбы, цветной контурный свет, глубина резкости,
+// лучи, пылинки, зерно. Режим задаётся в адресе: ?mode=avatar (1500×1500) или ?mode=banner (2560×1440).
+// Аватар рисуется в логических координатах 800×800 и масштабе SC — сразу в высоком разрешении, без растягивания.
+const MODE = new URLSearchParams(location.search).get("mode") ?? "banner";
+const [CWD, CHT] = MODE === "avatar" ? [800, 800] : [2560, 1440], SC = MODE === "avatar" ? 1500 / 800 : 1;
+const cv = document.getElementById("c"); cv.width = Math.round(CWD * SC); cv.height = Math.round(CHT * SC); const g = cv.getContext("2d"); g.setTransform(SC, 0, 0, SC, 0, 0);
+const B = (px) => `blur(${(px * SC).toFixed(1)}px)`;   // радиус размытия — в реальных пикселях
+const INK = "#20180f", FOBBIN = { body: "#f5c518", stripe: "#1f3a6e", hair: "curly", hairColor: "#a0522d", glasses: "#d6334a", backpack: "#3aa676", shoes: "#2f6fd6", plaster: true };
+// слой: физически в SC раз больше, рисуем в логических координатах; на холст кладём как drawImage(c, x, y, w, h)
+const layer = (w = CWD, h = CHT) => { const c = Object.assign(document.createElement("canvas"), { width: Math.ceil(w * SC), height: Math.ceil(h * SC) }); c.lw = w; c.lh = h; const x = c.getContext("2d"); x.setTransform(SC, 0, 0, SC, 0, 0); return [c, x]; };
+const put = (dst, c, x = 0, y = 0) => dst.drawImage(c, x, y, c.lw, c.lh);
+let seed = 5; const R = () => { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; };
+const LIGHTS = [];   // источники света: [x, y, радиус, цвет] — для свечения и контурного света
+
+// ---------- фон: стена лаборатории, полки с реактивами, доска с формулами (потом размывается — глубина резкости)
+function background(c, s, cx) {
+  const wall = c.createLinearGradient(0, 0, 0, CHT); wall.addColorStop(0, "#0d1d2b"); wall.addColorStop(0.6, "#14293a"); wall.addColorStop(1, "#0a141d");
+  c.fillStyle = wall; c.fillRect(0, 0, CWD, CHT);
+  c.strokeStyle = "rgba(160,200,230,0.05)"; c.lineWidth = 2 * s; for (let x = 0; x < CWD; x += 90 * s) { c.beginPath(); c.moveTo(x, 0); c.lineTo(x, CHT); c.stroke(); } for (let y = 0; y < CHT; y += 90 * s) { c.beginPath(); c.moveTo(0, y); c.lineTo(CWD, y); c.stroke(); }
+  // доска с формулами
+  const bx = cx - 700 * s, by = CHT * 0.12, bw = 560 * s, bh = 330 * s;
+  c.fillStyle = "#5a3a22"; c.fillRect(bx - 14 * s, by - 14 * s, bw + 28 * s, bh + 28 * s); c.fillStyle = "#1e3a2e"; c.fillRect(bx, by, bw, bh);
+  c.fillStyle = "rgba(235,240,230,0.85)"; c.font = `600 ${44 * s}px "DejaVu Sans", sans-serif`;
+  c.fillText("E = mc²", bx + 40 * s, by + 80 * s); c.fillText("H₂O", bx + 360 * s, by + 90 * s); c.fillText("F = ma", bx + 60 * s, by + 200 * s); c.fillText("v = d/t", bx + 320 * s, by + 230 * s);
+  c.strokeStyle = "rgba(235,240,230,0.8)"; c.lineWidth = 4 * s; const ax = bx + 250 * s, ay = by + 150 * s;
+  for (const a of [0, 1.05, 2.1]) { c.beginPath(); c.ellipse(ax, ay, 70 * s, 24 * s, a, 0, 7); c.stroke(); } c.beginPath(); c.arc(ax, ay, 9 * s, 0, 7); c.fillStyle = "rgba(235,240,230,0.9)"; c.fill();
+  c.fillText("?", bx + 480 * s, by + 300 * s);
+  // полки с бутылками
+  for (const [sx, sy, sw] of [[cx + 330 * s, CHT * 0.2, 640 * s], [cx + 330 * s, CHT * 0.44, 640 * s], [cx - 1180 * s, CHT * 0.5, 520 * s]]) {
+    c.fillStyle = "#3b2a1e"; c.fillRect(sx, sy, sw, 18 * s);
+    for (let x = sx + 20 * s; x < sx + sw - 40 * s; x += (60 + R() * 50) * s) {
+      const h = (70 + R() * 90) * s, w = (34 + R() * 26) * s, col = ["#3fd28a", "#38c6e8", "#e05ad2", "#f2a33c", "#c9d9e8"][Math.floor(R() * 5)];
+      c.fillStyle = "rgba(200,230,255,0.18)"; c.fillRect(x, sy - h, w, h);
+      c.fillStyle = col; c.globalAlpha = 0.75; c.fillRect(x, sy - h * (0.35 + R() * 0.4), w, h * 0.6); c.globalAlpha = 1;
+      if (R() > 0.55) LIGHTS.push([x + w / 2, sy - h * 0.4, 60 * s, col, 0.35]);
+    }
+  }
+}
+// ---------- колбы: стекло, светящаяся жидкость, мениск, пузырьки, блики
+function flask(c, x, y, s, col, kind = "erlen") {
+  c.save(); c.translate(x, y); c.lineJoin = "round";
+  const path = () => { c.beginPath();
+    if (kind === "erlen") { c.moveTo(-22 * s, -150 * s); c.lineTo(-22 * s, -95 * s); c.lineTo(-85 * s, 0); c.quadraticCurveTo(0, 14 * s, 85 * s, 0); c.lineTo(22 * s, -95 * s); c.lineTo(22 * s, -150 * s); }
+    else if (kind === "round") { c.moveTo(-18 * s, -170 * s); c.lineTo(-18 * s, -105 * s); c.arc(0, -55 * s, 58 * s, -Math.PI / 2 - 0.32, Math.PI * 1.5 + 0.32, true); c.lineTo(18 * s, -170 * s); }
+    else { c.moveTo(-17 * s, -200 * s); c.lineTo(-17 * s, -14 * s); c.quadraticCurveTo(0, 6 * s, 17 * s, -14 * s); c.lineTo(17 * s, -200 * s); }
+    c.closePath(); };
+  // жидкость
+  c.save(); path(); c.clip();
+  const top = kind === "erlen" ? -62 * s : kind === "round" ? -78 * s : -120 * s;
+  const lg = c.createLinearGradient(0, top, 0, 10 * s); lg.addColorStop(0, col); lg.addColorStop(1, shadeCol(col, 0.55));
+  c.fillStyle = lg; c.fillRect(-100 * s, top, 200 * s, 200 * s);
+  c.fillStyle = "rgba(255,255,255,0.35)"; c.fillRect(-100 * s, top, 200 * s, 5 * s);
+  for (let i = 0; i < 14; i++) { const bx = (R() - 0.5) * 120 * s, by = top + R() * (10 * s - top) * 0.9, r = (2 + R() * 6) * s; c.strokeStyle = "rgba(255,255,255,0.7)"; c.lineWidth = 2 * s; c.beginPath(); c.arc(bx, by, r, 0, 7); c.stroke(); }
+  c.restore();
+  // стекло
+  c.fillStyle = "rgba(210,235,255,0.12)"; path(); c.fill();
+  c.strokeStyle = INK; c.lineWidth = 7 * s; path(); c.stroke();
+  c.strokeStyle = "rgba(255,255,255,0.75)"; c.lineWidth = 6 * s; c.lineCap = "round"; c.beginPath();
+  if (kind === "erlen") { c.moveTo(-48 * s, -40 * s); c.lineTo(-64 * s, -12 * s); } else if (kind === "round") c.arc(0, -55 * s, 42 * s, 3.6, 4.2); else { c.moveTo(-8 * s, -180 * s); c.lineTo(-8 * s, -40 * s); } c.stroke();
+  c.fillStyle = "#cfe3f2"; c.strokeStyle = INK; c.lineWidth = 6 * s; const nh = kind === "tube" ? 200 : kind === "round" ? 170 : 150;
+  c.beginPath(); c.roundRect(-30 * s, -(nh + 10) * s, 60 * s, 16 * s, 6 * s); c.fill(); c.stroke();
+  c.restore();
+  LIGHTS.push([x, y + top * 0.6, 170 * s, col, 1]);
+}
+const shadeCol = (hex, k) => { const n = parseInt(hex.slice(1), 16); return `rgb(${[(n >> 16) & 255, (n >> 8) & 255, n & 255].map((v) => Math.round(v * k)).join(",")})`; };
+// пар над колбой
+function steam(c, x, y, s, col) { for (let i = 0; i < 7; i++) { const yy = y - i * 34 * s, xx = x + Math.sin(i * 1.3) * 22 * s, r = (20 + i * 9) * s; const gr = c.createRadialGradient(xx, yy, 0, xx, yy, r); gr.addColorStop(0, col.replace("rgb", "rgba").replace(")", ",0.25)")); gr.addColorStop(1, "rgba(255,255,255,0)"); c.fillStyle = gr; c.fillRect(xx - r, yy - r, 2 * r, 2 * r); } }
+
+// ---------- сцена
+function scene() {
+  const s = MODE === "avatar" ? 1.0 : 1.0, cx = CWD / 2;
+  const [bc, bx] = layer(); background(bx, MODE === "avatar" ? 0.8 : 1, cx);
+  g.filter = B(MODE === "avatar" ? 5 : 6); put(g, bc); g.filter = "none";
+  // лучи от лампы сверху
+  const lx = cx + (MODE === "avatar" ? 120 : 260), ly = -40;
+  g.save(); g.globalCompositeOperation = "screen";
+  for (let i = 0; i < 5; i++) { const a = -0.35 + i * 0.17, gr = g.createLinearGradient(lx, ly, lx + Math.sin(a) * CHT, CHT); gr.addColorStop(0, "rgba(255,226,170,0.16)"); gr.addColorStop(1, "rgba(255,226,170,0)");
+    g.fillStyle = gr; g.beginPath(); g.moveTo(lx - 30, ly); g.lineTo(lx + Math.sin(a) * CHT * 1.3 - 120, CHT * 1.2); g.lineTo(lx + Math.sin(a) * CHT * 1.3 + 120, CHT * 1.2); g.lineTo(lx + 30, ly); g.fill(); }
+  g.restore(); LIGHTS.push([lx, 60, 260, "#ffe2aa", 0.7]);
+  // стол
+  const tableY = MODE === "avatar" ? 690 : CHT * 0.8;
+  const tg = g.createLinearGradient(0, tableY, 0, CHT); tg.addColorStop(0, "#6b4527"); tg.addColorStop(1, "#2c1a0e"); g.fillStyle = tg; g.fillRect(0, tableY, CWD, CHT - tableY);
+  g.strokeStyle = "rgba(0,0,0,0.25)"; g.lineWidth = 3; for (let i = 0; i < 18; i++) { const y = tableY + 10 + i * 12; g.beginPath(); g.moveTo(0, y + Math.sin(i) * 4); g.bezierCurveTo(CWD * 0.3, y - 6, CWD * 0.6, y + 8, CWD, y); g.stroke(); }
+  g.fillStyle = "#8a5a33"; g.fillRect(0, tableY - 10, CWD, 14); g.strokeStyle = INK; g.lineWidth = 5; g.beginPath(); g.moveTo(0, tableY - 10); g.lineTo(CWD, tableY - 10); g.stroke();
+  // Fobbin
+  const [fc, fx] = layer(CW, CH);
+  drawDoodle(fx, FOBBIN, { expr: "grin", lookX: MODE === "avatar" ? 0.3 : 0.55, tilt: -0.04, blink: false, bonk: 0, breathe: 0,
+    ...(MODE === "avatar" ? { handF: [-0.3, 0.6], bendF: -0.25, handB: [0.62, 1.12], bendB: 0.35 }     // аватар: колба справа
+                          : { handF: [-0.62, 1.12], bendF: -0.35, handB: [0.3, 0.6], bendB: 0.25 }) });   // шапка: колба слева, подальше от названия
+  const fh = MODE === "avatar" ? 1000 : CHT * 0.98, fw = fh * PLANE_W / PLANE_H, fxp = MODE === "avatar" ? cx - 40 : cx - 360, fbottom = MODE === "avatar" ? 960 : tableY + 120;
+  const ftop = fbottom - fh, k = fh / PLANE_H, P = (x, z) => [fxp + x * k, ftop + (PLANE_H - z) * k];
+  // колбы на столе (позади и перед персонажем)
+  const fl = MODE === "avatar"
+    ? [[130, 700, 0.9, "#3fd28a", "erlen"], [700, 700, 0.75, "#e05ad2", "round"]]
+    : [[cx - 900, tableY, 1.1, "#3fd28a", "erlen"], [cx - 700, tableY, 1.0, "#f2a33c", "tube"], [cx - 640, tableY, 0.9, "#38c6e8", "tube"], [cx + 820, tableY, 1.15, "#e05ad2", "round"], [cx + 1020, tableY, 1.0, "#38c6e8", "erlen"]];
+  for (const [x, y, sc, col, kind] of fl) flask(g, x, y, sc, col, kind);
+  steam(g, fl[0][0], fl[0][1] - 170 * fl[0][2], 1, "rgb(120,255,190)");
+  // колба в поднятой руке: рисуем до персонажа, чтобы ладонь лежала на горлышке
+  const [hx, hy] = MODE === "avatar" ? P(0.62, 1.12) : P(-0.62, 1.12), hs = MODE === "avatar" ? 0.85 : 1.0; flask(g, hx, hy + 150 * hs, hs, "#38c6e8", "round");
+  steam(g, hx, hy - 40 * hs, 1, "rgb(140,230,255)");
+  g.drawImage(fc, fxp - fw / 2, ftop, fw, fh);   // fc — слой CW×CH, рисуем в нужный размер
+  // контурный свет на Fobbin от колб и лампы: кромка со стороны каждого источника + цветной ореол
+  rim(fc, fxp - fw / 2, ftop, fw, fh);
+  // свечение (bloom) всех источников
+  const [lc, lx2] = layer(CWD / 4, CHT / 4); lx2.scale(0.25, 0.25);
+  for (const [x, y, r, col, a] of LIGHTS) { const gr = lx2.createRadialGradient(x, y, 0, x, y, r); gr.addColorStop(0, col); gr.addColorStop(1, "rgba(0,0,0,0)"); lx2.globalAlpha = a; lx2.fillStyle = gr; lx2.fillRect(x - r, y - r, 2 * r, 2 * r); }
+  g.save(); g.globalCompositeOperation = "screen"; g.filter = B(10); g.globalAlpha = 0.9; g.drawImage(lc, 0, 0, CWD, CHT); g.filter = B(40); g.globalAlpha = 0.8; g.drawImage(lc, 0, 0, CWD, CHT); g.restore();
+  // передний план: размытая колба у края — глубина
+  if (MODE === "banner") { const [pc, px] = layer(); flask(px, CWD - 170, CHT + 60, 2.2, "#3fd28a", "erlen"); flask(px, 160, CHT + 80, 2.0, "#f2a33c", "round"); g.save(); g.filter = B(9); put(g, pc); g.restore(); }
+  // пылинки, виньетка, зерно
+  g.save(); g.globalCompositeOperation = "screen"; for (let i = 0; i < (MODE === "avatar" ? 40 : 120); i++) { const x = R() * CWD, y = R() * CHT, r = (1.5 + R() * 3.5) * (MODE === "avatar" ? 1 : 1.4); const gr = g.createRadialGradient(x, y, 0, x, y, r * 3); gr.addColorStop(0, `rgba(255,236,200,${0.25 + R() * 0.35})`); gr.addColorStop(1, "rgba(255,236,200,0)"); g.fillStyle = gr; g.fillRect(x - r * 3, y - r * 3, r * 6, r * 6); } g.restore();
+  const vg = g.createRadialGradient(CWD / 2, CHT / 2, Math.min(CWD, CHT) * 0.35, CWD / 2, CHT / 2, Math.max(CWD, CHT) * 0.75); vg.addColorStop(0, "rgba(0,0,0,0)"); vg.addColorStop(1, "rgba(0,0,0,0.55)"); g.fillStyle = vg; g.fillRect(0, 0, CWD, CHT);
+  const im = g.getImageData(0, 0, cv.width, cv.height), d = im.data; for (let i = 0; i < d.length; i += 4) { const n = (R() - 0.5) * 14; d[i] += n; d[i + 1] += n; d[i + 2] += n; } g.putImageData(im, 0, 0);
+  if (MODE === "banner") title(cx);
+}
+function rim(fc, x, y, w, h) {
+  const [mc, mx] = layer(w, h); mx.drawImage(fc, 0, 0, w, h);
+  const id = mx.getImageData(0, 0, mc.width, mc.height), d = id.data; for (let i = 0; i < d.length; i += 4) if (Math.max(d[i], d[i + 1], d[i + 2]) < 80) d[i + 3] = 0; mx.putImageData(id, 0, 0);
+  const cx = x + w / 2, cy = y + h * 0.45;
+  for (const [lx, ly, r, col, a] of LIGHTS) { if (a < 0.6) continue;
+    const dx = lx - cx, dy = ly - cy, dist = Math.hypot(dx, dy), ux = dx / dist, uy = dy / dist, str = Math.min(1, (h * 0.6) / dist) * a * 0.55;
+    const [rc, rx] = layer(w, h);
+    rx.drawImage(fc, 0, 0, w, h); rx.globalCompositeOperation = "destination-out"; rx.drawImage(fc, -ux * w * 0.03, -uy * w * 0.03, w, h);
+    rx.globalCompositeOperation = "destination-in"; put(rx, mc); rx.globalCompositeOperation = "source-in"; rx.fillStyle = col; rx.fillRect(0, 0, w, h);
+    g.save(); g.globalCompositeOperation = "screen"; g.globalAlpha = Math.min(1, str * 1.1); g.filter = B(2); put(g, rc, x, y); g.restore();
+    const [sc2, sx2] = layer(w, h); put(sx2, mc); sx2.globalCompositeOperation = "source-in";
+    const gr = sx2.createRadialGradient(lx - x, ly - y, 0, lx - x, ly - y, dist * 1.1); gr.addColorStop(0, col); gr.addColorStop(1, "rgba(0,0,0,0)"); sx2.fillStyle = gr; sx2.fillRect(0, 0, w, h);
+    g.save(); g.globalCompositeOperation = "screen"; g.globalAlpha = 0.35 * str; put(g, sc2, x, y); g.restore(); }
+  // общая тень лаборатории на фигуре: чуть притемнить, чтобы цветной свет читался
+}
+function title(cx) {
+  const y = CHT * 0.5, x = cx - 120;   // всё важное — в безопасной зоне 1546×423 по центру
+  g.save(); g.textAlign = "left"; g.textBaseline = "middle"; g.lineJoin = "round";
+  g.font = `900 120px "DejaVu Sans", sans-serif`; g.lineWidth = 22; g.strokeStyle = INK; g.strokeText("WHAT IF,", x, y - 70); g.fillStyle = "#ffffff"; g.fillText("WHAT IF,", x, y - 70);
+  g.font = `900 150px "DejaVu Sans", sans-serif`; g.strokeText("FOBBIN?", x, y + 70); g.fillStyle = "#f5c518"; g.fillText("FOBBIN?", x, y + 70);
+  g.font = `700 40px "DejaVu Sans", sans-serif`; g.fillStyle = "rgba(220,235,245,0.92)"; g.fillText("Science · Survival · What-ifs", x + 6, y + 172);
+  g.restore();
+}
+scene();
+document.title = "done";
+</script></body></html>
