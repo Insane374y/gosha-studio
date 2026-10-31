@@ -16,6 +16,7 @@ function infoCard(g, cx, cy, txt, t, t0, o = {}) {
   g.fillStyle = INFO.card; g.strokeStyle = INFO.ink; g.lineWidth = 7; g.beginPath(); g.roundRect(x, y, w, h, 34); g.fill(); g.stroke();
   if (txt) { g.font = `900 50px ${FONT_TITLE}`; g.textAlign = "center"; g.textBaseline = "middle"; g.fillStyle = INFO.title; g.fillText(txt.toUpperCase(), 0, y + 58); }
   if (o.draw) o.draw(g, x + 40, y + head + 20, w - 80, h - head - 50, clamp((t - t0 - 0.2) / (o.dur ?? 1.4), 0, 1), t);
+  if (o.note) { g.font = `700 26px ${FONT_TITLE}`; g.textAlign = "right"; g.fillStyle = INFO.muted; g.fillText(o.note, -x - 30, -y - 18); }
   g.restore();
 }
 // График-линия внутри карточки: pts = [[подпись, значение], …]; рисуется слева направо по k.
@@ -34,17 +35,18 @@ function chartLine(g, x, y, w, h, pts, k, o = {}) {
   pts.forEach(([label, v], i) => { if (i > n + 0.01) return;
     const c = colAt(v);
     g.fillStyle = c; g.strokeStyle = INFO.ink; g.lineWidth = 4; g.beginPath(); g.arc(X(i), Y(v), 15, 0, 7); g.fill(); g.stroke();
-    g.font = `900 40px ${FONT_TITLE}`; g.textAlign = "center"; g.fillStyle = c; g.fillText((o.fmt ? o.fmt(v) : v), X(i), Y(v) - 42);
+    g.font = `900 40px ${FONT_TITLE}`; g.textAlign = "center"; g.fillStyle = c; if (!o.noValues) g.fillText((o.fmt ? o.fmt(v) : v), X(i), Y(v) - 42);
     g.font = `800 32px ${FONT_TITLE}`; g.fillStyle = INFO.muted; g.fillText(label, X(i), y + h - 30); });
   const m = g.getTransform(), p = m.transformPoint(new DOMPoint(hx, hy)); emitGlow(p.x, p.y, 70, "#ffe2a8", 0.7);
 }
-// Столбики: bars = [[подпись, значение, цвет?], …]; растут по k.
+// Столбики: bars = [[подпись, значение, цвет?, текст над столбиком?], …]; растут по k,
+// или каждый в своё время: o.at = [t0, t1, …] + o.t (время кадра) — чтобы совпадать с голосом.
 function chartBars(g, x, y, w, h, bars, k, o = {}) {
   const hi = o.max ?? Math.max(...bars.map((b) => b[1])), bw = (w / bars.length) * 0.6;
   bars.forEach(([label, v, col], i) => {
-    const kk = easeOut(clamp(k * 1.4 - i * 0.15, 0, 1)), bh = (h - 120) * (v / hi) * kk, bx = x + (w / bars.length) * (i + 0.2), by = y + h - 70 - bh;
+    const kk = o.at ? easeOut(clamp((o.t - o.at[i]) / 0.6, 0, 1)) : easeOut(clamp(k * 1.4 - i * 0.15, 0, 1)), bh = (h - 120) * (v / hi) * kk, bx = x + (w / bars.length) * (i + 0.2), by = y + h - 70 - bh;
     g.fillStyle = col ?? INFO.gold; g.strokeStyle = INFO.ink; g.lineWidth = 5; g.beginPath(); g.roundRect(bx, by, bw, bh, 10); g.fill(); if (bh > 4) g.stroke();
-    g.font = `900 40px ${FONT_TITLE}`; g.textAlign = "center"; g.fillStyle = INFO.ink; if (kk > 0.2) g.fillText(o.fmt ? o.fmt(v * kk) : Math.round(v * kk), bx + bw / 2, by - 24);
+    g.font = `900 40px ${FONT_TITLE}`; g.textAlign = "center"; g.fillStyle = INFO.ink; if (kk > 0.2) g.fillText(bars[i][3] ?? (o.fmt ? o.fmt(v * kk) : Math.round(v * kk)), bx + bw / 2, by - 24);
     g.font = `800 32px ${FONT_TITLE}`; g.fillStyle = INFO.muted; g.fillText(label, bx + bw / 2, y + h - 28); });
 }
 // Крупное число, которое набегает от from до to (деньги, проценты, градусы) — внутри карточки или само по себе.

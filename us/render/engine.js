@@ -192,9 +192,11 @@ function drawActor(scene, t, a) {
   const dart = valAt(tt, a.look, Math.sin(tt * 1.7 + a.seed * 2) > 0.7 ? 0.8 : Math.sin(tt * 1.3 + a.seed) < -0.75 ? -0.8 : 0);
   const pose = {
     expr: ex, blink, bonk, lookX: dart, tilt: Math.sin(tt * 1.1 + a.seed) * 0.03 + (valAt(tt, a.tilt, 0)),
-    handF: track(tt, a.handF) ?? REST_FM, handB: track(tt, a.handB) ?? REST_BM,
+    handF: valAt(tt, a.run, 0) ? [REST_FM[0] - 0.12 * Math.sin(tt * 13 + a.seed), REST_FM[1] + 0.12] : (track(tt, a.handF) ?? REST_FM),
+    handB: valAt(tt, a.run, 0) ? [REST_BM[0] + 0.12 * Math.sin(tt * 13 + a.seed), REST_BM[1] + 0.12] : (track(tt, a.handB) ?? REST_BM),
     bendF: valAt(tt, a.bendF, 0.12), bendB: valAt(tt, a.bendB, -0.12),
     lean: a.lean ? smoothTrack(tt, a.lean)[0] : 0, mouth: valAt(tt, a.mouth, undefined), flyEyes: a.flyEyes ? smoothTrack(tt, a.flyEyes)[0] : 0,
+    stride: valAt(tt, a.run, 0), phase: tt * 13 + a.seed,
     bigEyes: valAt(tt, a.bigEyes, false), eyeDirs: a.eyeL ? [smoothTrack(tt, a.eyeL), smoothTrack(tt, a.eyeR)] : null, tongue: a.tongue ? smoothTrack(tt, a.tongue)[0] : 0,
   };
   if (a.blinkHold && valAt(tt, a.blinkHold, false)) pose.blink = true;
@@ -205,7 +207,8 @@ function drawActor(scene, t, a) {
   const hop = a.hop ? Math.max(0, Math.sin(clamp((t - a.hop[0]) / a.hop[1], 0, 1) * Math.PI)) * 0.12 : 0;
   const lift = a.lift ? smoothTrack(t, a.lift)[0] : 0, sc0 = a.scale ? (Array.isArray(a.scale) ? smoothTrack(t, a.scale)[0] : a.scale) : 1;
   const roll = a.roll ? smoothTrack(t, a.roll)[0] : 0, shake = a.shiver && valAt(t, a.shiver, false) ? Math.sin(t * 60) * 0.01 : 0;
-  const base = [pos[0] + shake, pos[1] + hop * sc0 + lift, pos[2]];
+  const bob = valAt(t, a.run, 0) ? Math.abs(Math.sin(t * 13 + a.seed)) * 0.05 * valAt(t, a.run, 0) : 0;   // подпрыгивание на бегу
+  const base = [pos[0] + shake, pos[1] + hop * sc0 + lift + bob, pos[2]];
   const item = { z: scene.cam.toCam([pos[0], 1.0, pos[2]])[2], draw: (g) => {
     const b = scene.cam.P(base), top = scene.cam.P([base[0], base[1] + PLANE_H * sc0, base[2]]);
     if (!b || !top) return;

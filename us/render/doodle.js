@@ -45,9 +45,11 @@ function drawDoodle(ctx, look, p) {
     ctx.fillStyle = INK; ctx.beginPath(); ctx.arc(X(h[0]), Y(h[1]), 0.05 * K, 0, Math.PI * 2); ctx.fill();
     ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.ellipse(X(h[0] - 0.017), Y(h[1] + 0.017), 0.009 * K, 0.006 * K, 0.6, 0, Math.PI * 2); ctx.fill();
   };
+  const st = p.stride ?? 0;   // бег: ступни ходят вперёд-назад и отрываются от земли
   for (const s of [1, -1]) {
-    limb(B(s * W * 0.2, 0.05), [s * 0.08, 0.03], s * 0.04);
-    ctx.fillStyle = look.shoes ?? INK; ctx.beginPath(); ctx.ellipse(X(s * 0.08 + 0.015), Y(0.022), 0.05 * K, 0.026 * K, 0, 0, Math.PI * 2); ctx.fill();
+    const ph = (p.phase ?? 0) + (s > 0 ? 0 : Math.PI), fx = s * 0.08 + st * 0.16 * Math.sin(ph), fz = 0.03 + st * 0.09 * Math.max(0, Math.cos(ph));
+    limb(B(s * W * 0.2, 0.05), [fx, fz], s * 0.04 + st * 0.12 * Math.cos(ph));
+    ctx.fillStyle = look.shoes ?? INK; ctx.beginPath(); ctx.ellipse(X(fx + 0.015), Y(fz - 0.008), 0.05 * K, 0.026 * K, 0, 0, Math.PI * 2); ctx.fill();
     if (look.shoes) { stroke(0.01); ctx.stroke(); }
   }
   if (look.backpack) {

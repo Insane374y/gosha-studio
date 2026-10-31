@@ -71,7 +71,8 @@ function rimLight(g, k) {
     }
     const s = clamp(sum / 60, 0, 1) * 0.75 * k; if (s < 0.04) continue;
     const n = Math.hypot(vx, vy) || 1, dx = vx / n, dy = vy / n, col = `${Math.round(cr / sum)},${Math.round(cg / sum)},${Math.round(cb / sum)}`;
-    const w = Math.ceil(a.w), h = Math.ceil(a.h), off = a.w * 0.055, m = fillMask(a.cv, w, h);
+    // считаем в уменьшенном размере (не больше ~360 px по высоте): кромка всё равно размыта, а памяти нужно в разы меньше
+    const sc = Math.min(1, 360 / a.h), w = Math.max(2, Math.ceil(a.w * sc)), h = Math.max(2, Math.ceil(a.h * sc)), off = w * 0.055, m = fillMask(a.cv, w, h);
     if (RIM.width !== w || RIM.height !== h) { RIM.width = w; RIM.height = h; } else RX.clearRect(0, 0, w, h);
     // 1) мягкая подсветка стороны, обращённой к свету
     RX.globalCompositeOperation = "source-over"; RX.drawImage(m, 0, 0);
@@ -85,7 +86,7 @@ function rimLight(g, k) {
     RX.globalCompositeOperation = "destination-out"; RX.drawImage(a.cv, -dx * off, -dy * off, w, h);
     RX.globalCompositeOperation = "destination-in"; RX.drawImage(m, 0, 0);
     RX.globalCompositeOperation = "source-in"; RX.fillStyle = `rgb(${col})`; RX.fillRect(0, 0, w, h);
-    g.save(); g.globalCompositeOperation = "screen"; g.globalAlpha = Math.min(1, s * 1.2); g.filter = "blur(2px)"; g.drawImage(RIM, a.x, a.y, a.w, a.h); g.restore();
+    g.save(); g.globalCompositeOperation = "screen"; g.globalAlpha = Math.min(1, s * 1.2); g.filter = `blur(${(1.2 / sc).toFixed(1)}px)`; g.drawImage(RIM, a.x, a.y, a.w, a.h); g.restore();
   }
   RX.globalCompositeOperation = "source-over";
 }
