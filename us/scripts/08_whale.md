@@ -1,99 +1,96 @@
 # 08 — What if Fobbin got swallowed by a whale?
 
-Ставка: жизнь — 40 секунд в пасти горбатого кита на глубине 45 футов, плюс главный миф «кит может проглотить человека». ~73 с.
+Ставка: жизнь — кашалот по-настоящему глотает Fobbin целиком: темнота, нет воздуха, кит уходит на глубину, желудок из четырёх камер. Счёт идёт на минуты. ~73 с.
 
 ## Первый кадр (0–1 с)
-Под водой у Кейп-Кода, зеленоватый полумрак, лучи солнца сверху. Fobbin в маске и с баллоном тянется к лобстеру на дне — и снизу вокруг него с грохотом смыкается гигантская пасть горбача: свет гаснет, остаются только пузыри и светящаяся маска. Титр поверх действия, ≤1 с.
+Открытый океан, Мексиканский залив, яркое солнце. Fobbin в маске с трубкой лежит на воде и машет рукой в камеру — и прямо под ним из глубины поднимается огромная квадратная голова кашалота с раскрытой узкой пастью. «GULP» — и Fobbin исчезает, на воде остаётся только трубка. Титр поверх действия, ≤1 с.
 
 ## Текст на экране
 - 0.0–1.0 с: **WHAT IF YOU GOT SWALLOWED BY A WHALE?**
-- 0:07: **CAPE COD — 45 FEET DOWN**
-- 0:15: **THIS REALLY HAPPENED (2021)**
-- 0:40: **IT CAN'T SWALLOW YOU**
-- 0:55: **NOT ON THE MENU**
+- 0:06: **SPERM WHALE**
+- 0:20: **NO AIR**
+- 0:35: **4 STOMACH CHAMBERS**
+- 0:50: **WHALES THROW UP**
 
 ## Инфографика
-1. **~0:20–0:25 («sixty feet long and forty tons») — столбики (`chartBars`)**, заголовок **HOW BIG (FEET)**:
-   - HUMPBACK — **up to 60**
-   - FOBBIN — **~6** (маленький значок Fobbin в ластах)
-   Столбики вырастают по очереди синхронно с голосом.
-2. **~0:28–0:35 («Ten seconds. Twenty. Thirty.») — счётчик (`infoCounter`)**, заголовок **TIME INSIDE THE WHALE**: 0 → 40 SECONDS, тикает синхронно с голосом, в конце мигает «40».
-3. **~0:38–0:43 («about as wide as a grapefruit») — шкала (`infoMeter`)**, заголовок **HUMPBACK THROAT**: слева грейпфрут (зелёный, «FITS»), справа Fobbin (красный, «NOPE»). Без точных сантиметров — источники расходятся (см. «Факты»).
+1. **~0:08–0:14 («Most whales can't do this… wide enough for a person») — столбики (`chartBars`)**, заголовок **CAN IT SWALLOW YOU?**:
+   - HUMPBACK — **NO** (короткий столбик, иконка грейпфрута)
+   - BLUE WHALE — **NO** (короткий столбик)
+   - SPERM WHALE — **YES** (высокий столбик, иконка гигантского кальмара и Fobbin)
+   Без сантиметров — высота столбиков условная, внизу мелко: *illustration*.
+2. **~0:24–0:32 («three thousand feet… an hour and a half… about one minute») — шкала (`infoMeter`)**, заголовок **HOLD YOUR BREATH**: SPERM WHALE — **90 MIN**, FOBBIN — **~1 MIN** (крошечная полоска, Fobbin с надутыми щеками).
+3. **~0:22–0:28 («three thousand feet») — счётчик (`infoCounter`)**, заголовок **DEPTH**: 0 → **3,000 FT**, стрелка вниз, фон темнеет.
+4. **~0:40–0:45 («Minutes. There's no oxygen») — счётчик (`infoCounter`)**, заголовок **TIME LEFT**: обратный отсчёт от «MINUTES» к «??», мигает красным. Точной цифры нет (см. «Факты»).
 
 ## Сюжетные звуки
-1. 0.0 — подводный гул, пузыри регулятора (фон).
-2. 0.6 — тяжёлый глухой «хлоп» смыкающейся пасти, свет гаснет.
-3. 0:03 — частое дыхание через регулятор, эхо.
-4. 0:10 — далёкая песня кита, низко и приглушённо.
-5. 0:26 — сдавливание: мягкий скрип/хлюпанье, как резина.
-6. 0:29 — сердцебиение под счётчиком.
-7. 0:45 — нарастающий гул подъёма, пузыри вверх.
-8. 0:48 — всплеск на поверхности, затем «пфф» — кит выплёвывает.
-9. 0:51 — чайки, плеск волн, мотор лодки вдалеке.
-10. 1:06 — шлепок: Fobbin падает на палубу.
-11. 1:10 — мультяшный щелчок клешни лобстера (финал).
+1. 0.0 — плеск волн, чайки (фон).
+2. 0.6 — огромный глухой «GULP», всплеск, звук резко глохнет.
+3. 0:03 — гулкая темнота: низкое сердцебиение кита, бульканье.
+4. 0:17 — мультяшное «пфф» газа (whale gas), Fobbin зажимает нос.
+5. 0:22 — нарастающий гул погружения, скрип давления.
+6. 0:26 — щелчки эхолокации кашалота (click-click), приглушённо.
+7. 0:34 — мягкое «хлюп» — Fobbin съезжает в желудок, как с горки.
+8. 0:36 — сжатие: резиновый скрип, как будто сжали кулак.
+9. 0:39 — тихое шипение кислоты (без натурализма).
+10. 0:52 — громкое мультяшное «BLAAARGH» и подъём пузырей.
+11. 0:55 — всплеск на поверхности, Fobbin жадно вдыхает.
+12. 1:10 — «плюх» — кальмар-шапка шлёпает Fobbin по макушке (финал).
 
 ## Озвучка (EN)
-What if Fobbin got swallowed by a whale?
+What if Fobbin got swallowed by a whale? For real.
 
-Cape Cod, Massachusetts. Fobbin dives forty-five feet down, hunting lobsters. Then the ocean goes dark.
+Fobbin is snorkeling far out in the Gulf of Mexico. A giant square head rises under him. Gulp.
 
-Not night. Something closed around him.
+Most whales can't do this. Their throats are tiny. But the sperm whale hunts giant squid, so its throat is wide enough for a person. It's the only whale that could swallow Fobbin whole.
 
-He's inside the mouth of a humpback whale.
+Inside: pitch black, warm, smells like old squid. And there's no air. Just whale gas.
 
-This really happened. In 2021, lobster diver Michael Packard was scooped up off Provincetown.
+Bad news: the whale dives. Sperm whales can go down three thousand feet and hold their breath for an hour and a half. Fobbin can hold his for about one minute.
 
-Humpbacks grow up to sixty feet long and forty tons. Fobbin is about six feet of panic.
+He slides down into the stomach. Not one stomach. Four chambers. The first one squeezes like a giant fist. The next one is full of acid.
 
-The mouth squeezes. Fobbin can feel the whale trying to swallow. His heart pounds, but he still has his scuba tank, so he can breathe. Ten seconds. Twenty. Thirty.
+How long would he last? Not days, like in movies. Minutes. There's no oxygen.
 
-Now the good news. Humpbacks eat tiny fish and krill. Their throat is about as wide as a grapefruit. Fobbin is not a grapefruit. Physically, the whale cannot swallow him.
+But here's the thing. Sperm whales throw up stuff they can't digest, like hard squid beaks.
 
-And the whale hates this as much as he does. It rushes to the surface and spits him out into the sunlight.
+And Fobbin? Very hard to digest.
 
-About forty seconds inside a whale. Bruises. No broken bones.
-
-Whales don't hunt people. This was an accident. Wrong place, wrong snack.
-
-Fobbin crawls back into the boat. His mask is gone. One flipper is gone. But in his hand… a lobster. Alive. And extremely annoyed.
+BLAAARGH. The whale coughs him up into the sunlight with a pile of squid beaks. Fobbin gasps, floats, and realizes he's wearing a squid as a hat.
 
 ## Перевод (RU)
-Что если Fobbin проглотит кит?
+Что если Fobbin проглотит кит? По-настоящему.
 
-Кейп-Код, Массачусетс. Fobbin ныряет на сорок пять футов (около 14 м) за лобстерами. И вдруг океан становится чёрным.
+Fobbin плавает с маской и трубкой далеко в Мексиканском заливе. Под ним поднимается огромная квадратная голова. Глоть.
 
-Это не ночь. Вокруг него что-то захлопнулось.
+Большинство китов так не умеют. У них крошечное горло. Но кашалот охотится на гигантских кальмаров, поэтому его глотка достаточно широкая для человека. Это единственный кит, который мог бы проглотить Fobbin целиком.
 
-Он — в пасти горбатого кита.
+Внутри: кромешная тьма, тепло, пахнет старым кальмаром. И воздуха нет. Только китовые газы.
 
-Это было на самом деле. В 2021 году ныряльщика за лобстерами Майкла Паккарда подхватил кит у Провинстауна.
+Плохая новость: кит ныряет. Кашалоты погружаются на три тысячи футов (около 900 м) и задерживают дыхание на полтора часа. Fobbin может задержать своё примерно на минуту.
 
-Горбачи вырастают до шестидесяти футов (около 18 м) в длину и до сорока тонн. А Fobbin — это примерно шесть футов (около 1,8 м) паники.
+Он съезжает в желудок. И это не один желудок. Четыре камеры. Первая сжимает, как гигантский кулак. Следующая полна кислоты.
 
-Пасть сжимается. Fobbin чувствует, что кит пытается его проглотить. Сердце колотится, но у него остался акваланг, и он может дышать. Десять секунд. Двадцать. Тридцать.
+Сколько бы он продержался? Не дни, как в кино. Минуты. Кислорода нет.
 
-А теперь хорошая новость. Горбачи едят мелкую рыбу и криль. Их глотка шириной примерно с грейпфрут. Fobbin — не грейпфрут. Физически кит не может его проглотить.
+Но вот в чём штука. Кашалоты отрыгивают то, что не могут переварить, — например, твёрдые клювы кальмаров.
 
-И киту это нравится не больше, чем ему. Он рвётся к поверхности и выплёвывает Fobbin на солнце.
+А Fobbin? Очень трудно переваривается.
 
-Около сорока секунд внутри кита. Синяки. Ни одного перелома.
-
-Киты не охотятся на людей. Это была случайность. Не то место, не та закуска.
-
-Fobbin заползает обратно в лодку. Маски нет. Одной ласты нет. Но в руке у него… лобстер. Живой. И очень недовольный.
+БУЭЭЭ. Кит выкашливает его на солнце вместе с горкой кальмаровых клювов. Fobbin хватает ртом воздух, качается на волнах и понимает, что на голове у него вместо шапки — кальмар.
 
 ## Факты (проверить перед озвучкой)
-**Проверено через поиск** (сайты National Geographic и NOAA в сессии не открылись — данные из выдачи со ссылками на них):
-- Майкл Паккард, коммерческий ныряльщик за лобстерами, 11 июня 2021 года, у Провинстауна (Кейп-Код, Массачусетс), был захвачен в пасть горбатым китом; по его оценке, пробыл внутри примерно 30–40 секунд, после чего кит всплыл и выплюнул его: NECN (https://www.necn.com/news/local/humpback-whale-catches-lobster-diver-in-its-mouth-sending-him-to-hospital), KUOW/NPR (https://www.kuow.org/stories/a-lobster-diver-in-cape-cod-says-a-humpback-whale-scooped-him-up-and-spat-him-out).
-- Глубина около 45 футов; на нём был акваланг, поэтому он мог дышать: FOX 2 Detroit (https://www.fox2detroit.com/news/massachusetts-lobster-diver-survives-being-swallowed-by-whale-i-was-completely-inside), KVIA (https://kvia.com/news/us-world/2021/06/12/cape-cod-diver-left-with-a-whale-of-a-tale-after-a-humpback-spat-him-out/).
-- Травмы — синяки, без переломов: NECN.
-- Специалист Center for Coastal Studies (Джук Роббинс): скорее всего, случайность, горбачи так себя не ведут: KVIA.
-- Глотка горбача слишком узкая, чтобы проглотить человека; горбачи — фильтраторы (мелкая рыба, криль): The Inertia (https://www.theinertia.com/news/humpback-whale-accidentally-almost-swallows-lobster-diver/), National Geographic (https://www.nationalgeographic.com/animals/article/most-whales-cant-really-swallow-a-human-heres-why), Divernet (https://divernet.com/scuba-news/marine-biology/spat-out-why-whales-wont-swallow-humans/).
-- Размер горбача — до ~60 футов и ~40 тонн (NOAA Fisheries, по выдаче): https://www.fisheries.noaa.gov/species/humpback-whale.
+**Проверено через поиск** (сайты National Geographic, PopSci и NOAA в сессии не открылись — данные из поисковой выдачи со ссылками на них):
+- Из ~90 видов китов только у кашалота горло достаточно широкое, чтобы технически проглотить человека; причина — питание гигантскими кальмарами. У горбача горло примерно с кулак/грейпфрут, у синего кита пищевод — около 4 дюймов: National Geographic (https://www.nationalgeographic.com/animals/article/most-whales-cant-really-swallow-a-human-heres-why), PopSci (https://www.popsci.com/science/could-a-whale-swallow-a-human-whalefall/).
+- Желудок кашалота — четыре камеры; первая механически перетирает пищу, во второй — кислота: Science Friday через выдачу (https://www.sciencefriday.com/?p=84881).
+- Кашалот задерживает дыхание до ~90 минут и ныряет минимум на ~3 280 футов (1 000 м), по другим источникам — значительно глубже: National Geographic (https://www.nationalgeographic.com/animals/article/150415-sperm-whale-deep-sea-video-rov-gulf-mexico-nautilus-ballard-science), NHM (https://www.nhm.ac.uk/discover/quick-questions/how-long-can-whales-hold-their-breath.html). В тексте — осторожное «three thousand feet».
+- Кашалоты отрыгивают неперевариваемые клювы кальмаров (большая часть клювов выходит рвотой до переваривания): Natural History Museum (https://www.nhm.ac.uk/discover/what-is-ambergris.html), BBC Science Focus (https://www.sciencefocus.com/nature/the-bizarre-and-pretty-gross-science-of-whale-vomit).
+- Внутри кита человек задохнулся бы за минуты (нет кислорода, скопление метана) задолго до долгих часов; истории о выживании «днями» считаются вымыслом: Science Focus (https://www.sciencefocus.com/science/what-would-happen-if-you-were-swallowed-by-an-animal), Snopes (https://www.snopes.com/fact-check/fisherman-survived-inside-whale-for-three-days/), SYFY/Shane Gero (https://www.syfy.com/index%2Ephp/syfy-wire/whalefall-science-explained-by-sperm-whale-expert-shane-gero).
+- Кашалот — крупнейший зубатый кит (NOAA Fisheries, https://fisheries.noaa.gov/species/sperm-whale). Размеры самцов в источниках расходятся (52–60 футов, 40–45 тонн) — поэтому в озвучке размеров нет.
 
-**Не до конца проверено / по памяти — сверить:**
-- «Глотка шириной с грейпфрут» — источники расходятся: ~10 см («как грейпфрут/дыня») у одних, «шириной с кулак, растягивается до ~38 см» у других. Образ «грейпфрут» оставляем, точных сантиметров в ролик не ставим.
-- «About forty seconds» — это оценка самого Паккарда (30–40 с), в некоторых СМИ длительность другая.
-- Ласты и маска «пропали», лобстер в руке — художественный вымысел для финала, не факт из истории Паккарда (в озвучке подан как история Fobbin, а не Паккарда).
-- Рост Fobbin «около шести футов» — условность персонажа.
+**По памяти / не проверено — сверить:**
+- Кашалоты живут в Мексиканском заливе (есть известная популяция в глубоких водах залива) — по памяти; ролик NatGeo про кашалота в заливе косвенно это подтверждает, но численность и расстояние от берега не проверял.
+- «Голова квадратная», «пахнет кальмаром», «тепло» (температура тела кита) — художественные детали; температуру внутри кита не проверял.
+- Что кит отрыгнул бы именно человека — это «что если», а не наблюдение: проверено только то, что кашалоты отрыгивают неперевариваемое (клювы).
+- «Обычный человек задерживает дыхание примерно на минуту» — по памяти (у нетренированных людей обычно 30–90 с).
+- «Whale gas» (метан внутри) — встречается в выдаче как довод, но первоисточник не открывал.
+- Сравнение «первая камера сжимает, как кулак» — образ; механика камер дана по пересказу Science Friday.
