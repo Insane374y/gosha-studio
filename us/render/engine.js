@@ -6,7 +6,9 @@ const W = 1080, H = 1920, INKC = "#20180f";
 const LIGHT_DS = 0.25;
 const lightCv = document.createElement("canvas"); lightCv.width = W * LIGHT_DS; lightCv.height = H * LIGHT_DS;
 const LX = lightCv.getContext("2d");
-function lightReset() { LX.setTransform(1, 0, 0, 1, 0, 0); LX.clearRect(0, 0, lightCv.width, lightCv.height); LX.setTransform(LIGHT_DS, 0, 0, LIGHT_DS, 0, 0); }
+// персонажи этого кадра (силуэт и место) — для контурного света в common.js → rimLight
+const ACTORS = [];
+function lightReset() { ACTORS.length = 0; LX.setTransform(1, 0, 0, 1, 0, 0); LX.clearRect(0, 0, lightCv.width, lightCv.height); LX.setTransform(LIGHT_DS, 0, 0, LIGHT_DS, 0, 0); }
 // светящееся пятно в экранных координатах — для плоских сцен и мелких источников (фонарик, звезда, экран)
 function emitGlow(x, y, r, col, a = 1) { LX.save(); LX.globalAlpha = a; const gr = LX.createRadialGradient(x, y, 0, x, y, r); gr.addColorStop(0, col); gr.addColorStop(1, "rgba(0,0,0,0)"); LX.fillStyle = gr; LX.fillRect(x - r, y - r, 2 * r, 2 * r); LX.restore(); }
 const v3 = { sub: (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]], add: (a, b) => [a[0] + b[0], a[1] + b[1], a[2] + b[2]],
@@ -210,7 +212,7 @@ function drawActor(scene, t, a) {
     const hpx = b[1] - top[1], wpx = (hpx * PLANE_W) / PLANE_H;
     if (a.props) a.props(g, b[0], top[1], hpx / PLANE_H, t, "back");
     if (roll) { g.save(); g.translate(b[0], b[1] - hpx * 0.4); g.rotate(roll); g.drawImage(cv, -wpx / 2, -hpx * 0.6, wpx, hpx); g.restore(); }
-    else g.drawImage(cv, b[0] - wpx / 2, top[1], wpx, hpx);
+    else { g.drawImage(cv, b[0] - wpx / 2, top[1], wpx, hpx); if (a.rim !== false) ACTORS.push({ cv, x: b[0] - wpx / 2, y: top[1], w: wpx, h: hpx }); }
     if (a.props) a.props(g, b[0], top[1], hpx / PLANE_H, t, "front");
   } };
   scene.items.push(item);

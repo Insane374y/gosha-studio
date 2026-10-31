@@ -3,7 +3,9 @@
 //   • титр «WHAT IF …» не дольше 1 с и рисуется поверх действия, а не вместо него;
 //   • все надписи берутся из text_NAME.js (en + ru), в коде шотов — только ключи: L("sun");
 //   • мягкое свечение: всё, что излучает свет (лампы, фонари, окна, солнце, фонарик, emitGlow), получает ореол;
-//     сила — VIDEO.bloom / shot.bloom (по умолчанию 1), 0 — выключить. Плюс редкие тёплые пылинки в воздухе (motes).
+//     сила — VIDEO.bloom / shot.bloom (по умолчанию 1), 0 — выключить. Плюс редкие тёплые пылинки в воздухе (motes);
+//   • контурный свет: персонаж рядом с источником света получает светлую кромку и подсветку с его стороны,
+//     цветом этого света (rimLight). Сила — VIDEO.rim / shot.rim (по умолчанию 1); у актёра rim: false — выключить.
 const cvs = document.getElementById("c"), G = cvs.getContext("2d");
 const LANG = "en";
 // надпись по ключу из TEXT (text_NAME.js); если ключа нет — сам ключ, чтобы ошибку было видно в кадре
@@ -41,6 +43,53 @@ function bloom(g, k) {
   g.globalAlpha = 0.9 * k; g.drawImage(BLB, 0, 0, W, H); g.drawImage(BLB, 0, 0, W, H);
   g.restore();
 }
+// Контурный свет: смотрим в световой слой, откуда, насколько ярко и каким цветом светит рядом с персонажем,
+// и кладём с этой стороны кромку по силуэту + мягкую подсветку половины фигуры. Дальний свет слабее (1 / (1 + (d/R)²)).
+const RIM = document.createElement("canvas"), RX = RIM.getContext("2d");
+const NI = document.createElement("canvas"), NX = NI.getContext("2d", { willReadFrequently: true });
+// силуэт без чёрного контура и линий-палочек: свет ложится только на цветные части (волосы, лицо, одежда)
+function fillMask(cv, w, h) {
+  if (NI.width !== w || NI.height !== h) { NI.width = w; NI.height = h; } else NX.clearRect(0, 0, w, h);
+  NX.drawImage(cv, 0, 0, w, h); const im = NX.getImageData(0, 0, w, h), d = im.data;
+  for (let i = 0; i < d.length; i += 4) if (Math.max(d[i], d[i + 1], d[i + 2]) < 80) d[i + 3] = 0;
+  NX.putImageData(im, 0, 0); return NI;
+}
+function rimLight(g, k) {
+  if (k <= 0 || !ACTORS.length) return;
+  const lw = lightCv.width, lh = lightCv.height, px = LX.getImageData(0, 0, lw, lh).data, S = [], step = 3;
+  for (let y = 0; y < lh; y += step) for (let x = 0; x < lw; x += step) {
+    const i = (y * lw + x) * 4, I = (px[i + 3] / 255) * (Math.max(px[i], px[i + 1], px[i + 2]) / 255);
+    if (I > 0.12) S.push([x / LIGHT_DS, y / LIGHT_DS, I, px[i], px[i + 1], px[i + 2]]);
+  }
+  if (!S.length) return;
+  for (const a of ACTORS) {
+    const cx = a.x + a.w / 2, cy = a.y + a.h * 0.45, R = a.h * 0.9;
+    let vx = 0, vy = 0, sum = 0, cr = 0, cg = 0, cb = 0;
+    for (const [x, y, I, r, gg, b] of S) {
+      const dx = x - cx, dy = y - cy, d = Math.hypot(dx, dy) || 1, wgt = I / (1 + (d / R) ** 2);
+      vx += (wgt * dx) / d; vy += (wgt * dy) / d; sum += wgt; cr += wgt * r; cg += wgt * gg; cb += wgt * b;
+    }
+    const s = clamp(sum / 60, 0, 1) * 0.75 * k; if (s < 0.04) continue;
+    const n = Math.hypot(vx, vy) || 1, dx = vx / n, dy = vy / n, col = `${Math.round(cr / sum)},${Math.round(cg / sum)},${Math.round(cb / sum)}`;
+    const w = Math.ceil(a.w), h = Math.ceil(a.h), off = a.w * 0.055, m = fillMask(a.cv, w, h);
+    if (RIM.width !== w || RIM.height !== h) { RIM.width = w; RIM.height = h; } else RX.clearRect(0, 0, w, h);
+    // 1) мягкая подсветка стороны, обращённой к свету
+    RX.globalCompositeOperation = "source-over"; RX.drawImage(m, 0, 0);
+    RX.globalCompositeOperation = "source-in";
+    const gr = RX.createLinearGradient(w / 2 + (dx * w) / 2, h * 0.45 + (dy * h) / 3, w / 2 - (dx * w) / 2, h * 0.45 - (dy * h) / 3);
+    gr.addColorStop(0, `rgba(${col},0.35)`); gr.addColorStop(0.6, `rgba(${col},0)`); RX.fillStyle = gr; RX.fillRect(0, 0, w, h);
+    g.save(); g.globalCompositeOperation = "screen"; g.globalAlpha = s; g.drawImage(RIM, a.x, a.y, a.w, a.h); g.restore();
+    // 2) кромка по ВНЕШНЕМУ краю: полный силуэт минус он же, сдвинутый от света; затем только цветные части
+    //    (так кромка ложится внутрь чёрного контура и не появляется на внутренних линиях — завитках, очках, лице)
+    RX.globalCompositeOperation = "source-over"; RX.clearRect(0, 0, w, h); RX.drawImage(a.cv, 0, 0, w, h);
+    RX.globalCompositeOperation = "destination-out"; RX.drawImage(a.cv, -dx * off, -dy * off, w, h);
+    RX.globalCompositeOperation = "destination-in"; RX.drawImage(m, 0, 0);
+    RX.globalCompositeOperation = "source-in"; RX.fillStyle = `rgb(${col})`; RX.fillRect(0, 0, w, h);
+    g.save(); g.globalCompositeOperation = "screen"; g.globalAlpha = Math.min(1, s * 1.2); g.filter = "blur(2px)"; g.drawImage(RIM, a.x, a.y, a.w, a.h); g.restore();
+  }
+  RX.globalCompositeOperation = "source-over";
+}
+
 // Пылинки в воздухе: редкие, тёплые, медленно плывут — для глубины и «живого» воздуха, не отвлекают.
 function motes(g, t, k) {
   if (k <= 0) return;
@@ -73,6 +122,7 @@ function renderFrame(t) {
     warmLight(G, W * 0.15, H * 0.3, H * 0.6, "rgba(255,220,170,A)", sh.warm ?? 0.22);
   }
   if (sh.dark) { const d = sh.dark(t); if (d > 0) { G.fillStyle = `rgba(8,10,35,${d})`; G.fillRect(0, 0, W, H); } }
+  rimLight(G, sh.rim ?? V.rim ?? 1);
   bloom(G, sh.bloom ?? V.bloom ?? 1);
   motes(G, t, sh.motes ?? (sh.screen ? 0 : V.motes ?? 1));
   if (sh.post) sh.post(G, t);
