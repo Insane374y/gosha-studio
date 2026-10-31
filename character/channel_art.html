@@ -145,6 +145,57 @@ function title(cx) {
   g.font = `700 40px "DejaVu Sans", sans-serif`; g.fillStyle = "rgba(220,235,245,0.92)"; g.fillText("Science · Survival · What-ifs", x + 6, y + 172);
   g.restore();
 }
-scene();
+// ---------- шапка: много летающих Fobbin. Двое — целиком в зоне «видно на всех устройствах» (1546×423 по центру,
+// x 507–2053, y 508–931) по бокам от названия; остальные — вне полосы y 508–931, их видно только на ТВ.
+function bannerScene() {
+  const cx = CWD / 2, ZX0 = 507, ZX1 = 2053, ZY0 = 508, ZY1 = 931;
+  const [bc, bx] = layer(); background(bx, 1, cx);
+  g.filter = B(8); put(g, bc); g.filter = "none";
+  g.fillStyle = "rgba(6,14,22,0.35)"; g.fillRect(0, 0, CWD, CHT);   // фон темнее — летающие Fobbin читаются лучше
+  const lx = cx, ly = -40; g.save(); g.globalCompositeOperation = "screen";
+  for (let i = 0; i < 5; i++) { const a = -0.35 + i * 0.17, gr = g.createLinearGradient(lx, ly, lx + Math.sin(a) * CHT, CHT); gr.addColorStop(0, "rgba(255,226,170,0.13)"); gr.addColorStop(1, "rgba(255,226,170,0)");
+    g.fillStyle = gr; g.beginPath(); g.moveTo(lx - 30, ly); g.lineTo(lx + Math.sin(a) * CHT * 1.3 - 120, CHT * 1.2); g.lineTo(lx + Math.sin(a) * CHT * 1.3 + 120, CHT * 1.2); g.lineTo(lx + 30, ly); g.fill(); }
+  g.restore();
+  // один Fobbin: x, y — центр фигуры, fh — высота плоскости, rot — наклон, pose — поза, blur/dim — глубина
+  const POSES = [
+    { expr: "laugh", handF: [-0.3, 0.86], handB: [0.3, 0.86], bendF: -0.2, bendB: 0.2 },              // руки вверх — «летит»
+    { expr: "shock", handF: [-0.32, 0.8], handB: [0.32, 0.8], bendF: -0.3, bendB: 0.3, bigEyes: true },
+    { expr: "grin", handF: [-0.3, 0.86], handB: [0.2, 0.46], bendF: -0.2, bendB: -0.12 },             // одна рука вверх
+    { expr: "realize", handF: [-0.2, 0.46], handB: [0.3, 0.86], bendF: 0.12, bendB: 0.2 },
+    { expr: "proud", handF: [-0.3, 0.6], handB: [0.3, 0.6], bendF: -0.35, bendB: 0.35 },
+    { expr: "smug", handF: [-0.2, 0.46], handB: [0.2, 0.46], lookX: 0.6 },
+  ];
+  const fob = (x, y, fh, rot, pose, o = {}) => {
+    const [fc, fx] = layer(CW, CH); drawDoodle(fx, FOBBIN, Object.assign({ blink: false, bonk: 0, breathe: 0, tilt: 0 }, pose));
+    const fw = fh * PLANE_W / PLANE_H;
+    g.save(); g.translate(x, y); g.rotate(rot); if (o.blur) g.filter = B(o.blur);
+    if (o.shadow !== false) { g.globalAlpha = 0.25; g.fillStyle = "#000"; g.beginPath(); g.ellipse(14, fh * 0.42, fw * 0.28, fh * 0.035, 0, 0, 7); g.fill(); g.globalAlpha = 1; }
+    g.drawImage(fc, -fw / 2, -fh * 0.62, fw, fh);
+    if (o.dim) { g.globalCompositeOperation = "source-atop"; g.restore(); g.save(); }
+    g.restore();
+    if (o.dim) { g.save(); g.globalAlpha = o.dim; g.fillStyle = "#0a141d"; g.translate(x, y); g.rotate(rot); g.restore(); }
+  };
+  // остальные — вне полосы всех устройств (сверху и снизу), разные размеры и наклоны; дальние меньше и размытее
+  let seedF = 41; const RF = () => { seedF = (seedF * 16807) % 2147483647; return (seedF - 1) / 2147483646; };
+  const spots = [[150, 230], [470, 130], [800, 290], [1130, 150], [1460, 270], [1790, 130], [2110, 290], [2420, 180],
+                 [130, 1200], [430, 1330], [760, 1150], [1090, 1320], [1420, 1180], [1760, 1330], [2090, 1170], [2420, 1300]];   // только сверху и снизу: полосу y 508–931 видно и на ПК
+  spots.forEach(([x, y], i) => { const far = RF() < 0.4, fh = far ? 330 + RF() * 120 : 470 + RF() * 160;
+    fob(x + (RF() - 0.5) * 60, y + (RF() - 0.5) * 40, fh, (RF() - 0.5) * 0.9, POSES[i % POSES.length], { blur: far ? 3 : 0, shadow: false }); });   // летят — без теней
+  // два «главных» — целиком в зоне всех устройств, по бокам от названия
+  const heroH = 560;   // фигура (от макушки до ступней) ≈ 0.67 плоскости ≈ 375 px — с запасом внутри 423 px
+  fob(ZX0 + 190, (ZY0 + ZY1) / 2 - 18, heroH, -0.08, POSES[0], { shadow: false });
+  fob(ZX1 - 190, (ZY0 + ZY1) / 2 - 18, heroH, 0.08, POSES[2], { shadow: false });
+  // виньетка и зерно
+  const vg = g.createRadialGradient(cx, CHT / 2, CHT * 0.3, cx, CHT / 2, CWD * 0.6); vg.addColorStop(0, "rgba(0,0,0,0)"); vg.addColorStop(1, "rgba(0,0,0,0.5)"); g.fillStyle = vg; g.fillRect(0, 0, CWD, CHT);
+  const im = g.getImageData(0, 0, cv.width, cv.height), d = im.data; for (let i = 0; i < d.length; i += 4) { const n = (R() - 0.5) * 12; d[i] += n; d[i + 1] += n; d[i + 2] += n; } g.putImageData(im, 0, 0);
+  // название — по центру зоны
+  g.save(); g.textAlign = "center"; g.textBaseline = "middle"; g.lineJoin = "round";
+  const ty = (ZY0 + ZY1) / 2;
+  g.font = `900 112px "DejaVu Sans", sans-serif`; g.lineWidth = 22; g.strokeStyle = INK; g.strokeText("WHAT IF,", cx, ty - 92); g.fillStyle = "#ffffff"; g.fillText("WHAT IF,", cx, ty - 92);
+  g.font = `900 150px "DejaVu Sans", sans-serif`; g.strokeText("FOBBIN?", cx, ty + 42); g.fillStyle = "#f5c518"; g.fillText("FOBBIN?", cx, ty + 42);
+  g.font = `700 40px "DejaVu Sans", sans-serif`; g.fillStyle = "rgba(225,238,248,0.95)"; g.fillText("Science · Survival · What-ifs", cx, ty + 160);
+  g.restore();
+}
+if (MODE === "banner") bannerScene(); else scene();
 document.title = "done";
 </script></body></html>
