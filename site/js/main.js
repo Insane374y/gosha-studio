@@ -141,10 +141,10 @@ function renderCategories() {
   const el = document.getElementById("cats");
   if (!el) return;
   el.innerHTML = CATEGORIES.map(c => `
-    <a class="cat" href="${c.page}">
+    <div class="cat-wrap"><a class="cat" href="${c.page}">
       <div class="cat__img">${drawPicture(c.pic.type, c.pic.color)}</div>
       <div class="cat__body"><h3>${c.title}</h3><p>${c.text}</p></div>
-    </a>`).join("");
+    </a></div>`).join("");
 }
 
 /* ---------- Карточка товара ---------- */
@@ -385,6 +385,7 @@ function initPin() {
 
 /* ---------- Блоки плавно выезжают снизу ---------- */
 function initReveal() {
+  if (!window.matchMedia("(min-width: 701px)").matches) document.getElementById("cats")?.setAttribute("data-stagger", "");
   const items = [];
   document.querySelectorAll("[data-reveal]").forEach((el) => items.push([el, 0]));
   document.querySelectorAll("[data-stagger]").forEach((wrap) => {
@@ -490,4 +491,141 @@ document.addEventListener("DOMContentLoaded", () => {
   window.addEventListener("scroll", onScroll, { passive: true });
   window.addEventListener("resize", onScroll);
   update();
+});
+
+/* =====================================================================
+   СОВРЕМЕННЫЕ ЭФФЕКТЫ
+   ===================================================================== */
+const finePointer = window.matchMedia("(pointer: fine)").matches;
+
+/* ---------- Заголовок по словам ---------- */
+function initSplit() {
+  document.querySelectorAll("[data-split]").forEach((h) => {
+    let i = 0;
+    const wrap = (text, shine) => text.split(/(\s+)/).map((part) =>
+      /^\s+$/.test(part) || !part ? part : `<span class="w${shine ? " shine" : ""}" style="--i:${i++}">${part}</span>`).join("");
+    h.innerHTML = [...h.childNodes].map((n) =>
+      n.nodeType === 3 ? wrap(n.textContent, false) : `<em>${wrap(n.textContent, true)}</em>`).join("");
+  });
+}
+
+/* ---------- Бегущая строка: скорость и направление зависят от прокрутки ---------- */
+function initTicker() {
+  const track = document.getElementById("ticker");
+  if (!track) return;
+  track.innerHTML += track.innerHTML; // две копии — для бесконечной ленты
+  if (reduceMotion) return;
+  let x = 0, dir = 1, lastY = window.scrollY, boost = 0;
+  const loop = () => {
+    const y = window.scrollY, dy = y - lastY;
+    lastY = y;
+    if (dy !== 0) dir = dy > 0 ? 1 : -1;
+    boost = boost * 0.92 + Math.min(Math.abs(dy), 80) * 0.08;
+    x -= dir * (0.6 + boost * 0.9);
+    const half = track.scrollWidth / 2;
+    if (x <= -half) x += half;
+    if (x > 0) x -= half;
+    track.style.transform = `translate3d(${x.toFixed(1)}px,0,0) skewX(${(-dir * Math.min(boost, 12) * 0.6).toFixed(2)}deg)`;
+    requestAnimationFrame(loop);
+  };
+  requestAnimationFrame(loop);
+}
+
+/* ---------- Каталог продукции раздвигается из стопки ---------- */
+function initSpread() {
+  const grid = document.getElementById("cats");
+  if (!grid || reduceMotion) return null;
+  const items = [...grid.children];
+  const wide = window.matchMedia("(min-width: 701px)");
+  if (!wide.matches) return null; // на телефоне карточки просто появляются по очереди
+  const mid = (items.length - 1) / 2;
+  return () => {
+    if (!wide.matches) { items.forEach((el) => (el.style.transform = "")); return; }
+    const r = grid.getBoundingClientRect();
+    const p = clamp01((window.innerHeight - r.top) / (window.innerHeight * 0.75));
+    const k = Math.pow(1 - p, 3); // 1 — стопка, 0 — разложены
+    items.forEach((el, i) => {
+      const dx = grid.clientWidth / 2 - (el.offsetLeft + el.offsetWidth / 2);
+      const dy = grid.clientHeight / 2 - (el.offsetTop + el.offsetHeight / 2);
+      el.style.transform = k < 0.001 ? "" :
+        `translate(${(dx * k).toFixed(1)}px, ${(dy * k).toFixed(1)}px) rotate(${((i - mid) * 8 * k).toFixed(2)}deg) scale(${(1 - 0.22 * k).toFixed(3)})`;
+      el.style.zIndex = String(10 - Math.round(Math.abs(i - mid) * 2));
+    });
+  };
+}
+
+/* ---------- Lens sweep: координаты курсора для подсветки ---------- */
+const GLOW_SEL = ".btn, .cat, .card, .feature, .stat, .cta, .hero__img, .contacts__box";
+function initGlow() {
+  document.addEventListener("pointermove", (e) => {
+    let el = e.target.closest?.(GLOW_SEL);
+    while (el) {
+      const r = el.getBoundingClientRect();
+      el.style.setProperty("--mx", `${e.clientX - r.left}px`);
+      el.style.setProperty("--my", `${e.clientY - r.top}px`);
+      el = el.parentElement?.closest(GLOW_SEL);
+    }
+  }, { passive: true });
+}
+
+/* ---------- Свой курсор ---------- */
+function initCursor() {
+  if (!finePointer || reduceMotion) return;
+  const ring = document.createElement("div"); ring.className = "cursor";
+  const dot = document.createElement("div"); dot.className = "cursor-dot";
+  document.body.append(ring, dot);
+  let mx = -100, my = -100, rx = -100, ry = -100;
+  document.addEventListener("pointermove", (e) => {
+    mx = e.clientX; my = e.clientY;
+    ring.classList.add("on"); dot.classList.add("on");
+    ring.classList.toggle("big", !!e.target.closest?.("a, button, input, select, textarea, label, .cat, .card"));
+  }, { passive: true });
+  document.documentElement.addEventListener("pointerleave", () => { ring.classList.remove("on"); dot.classList.remove("on"); });
+  const loop = () => {
+    rx += (mx - rx) * 0.18; ry += (my - ry) * 0.18;
+    ring.style.transform = `translate3d(${rx}px, ${ry}px, 0)`;
+    dot.style.transform = `translate3d(${mx}px, ${my}px, 0)`;
+    requestAnimationFrame(loop);
+  };
+  requestAnimationFrame(loop);
+}
+
+/* ---------- Кнопки-магниты ---------- */
+function initMagnetic() {
+  if (!finePointer || reduceMotion) return;
+  document.querySelectorAll(".hero__btns .btn, .header__cta, .cta .btn").forEach((b) => {
+    b.addEventListener("pointermove", (e) => {
+      const r = b.getBoundingClientRect();
+      const x = e.clientX - r.left - r.width / 2, y = e.clientY - r.top - r.height / 2;
+      b.style.transform = `translate(${(x * 0.22).toFixed(1)}px, ${(y * 0.3).toFixed(1)}px)`;
+    });
+    b.addEventListener("pointerleave", () => { b.style.transform = ""; });
+  });
+}
+
+/* ---------- Линия под заголовками ---------- */
+function initHeadings() {
+  const hs = document.querySelectorAll(".section h2, .seo-text h2");
+  if (reduceMotion || !("IntersectionObserver" in window)) { hs.forEach((h) => h.classList.add("seen")); return; }
+  const io = new IntersectionObserver((es) => es.forEach((e) => {
+    if (e.isIntersecting) { e.target.classList.add("seen"); io.unobserve(e.target); }
+  }), { threshold: 0.6 });
+  hs.forEach((h) => io.observe(h));
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  initSplit();
+  initTicker();
+  initGlow();
+  initCursor();
+  initMagnetic();
+  initHeadings();
+  const spread = initSpread();
+  if (spread) {
+    let t = false;
+    const go = () => { if (!t) { t = true; requestAnimationFrame(() => { t = false; spread(); }); } };
+    window.addEventListener("scroll", go, { passive: true });
+    window.addEventListener("resize", go);
+    spread();
+  }
 });
