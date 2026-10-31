@@ -153,11 +153,11 @@ function productCard(p) {
   const pic = p.photo ? `<img src="${p.photo}" alt="${p.title}">` : drawPicture("shutter", color);
   return `
   <article class="card">
-    <a class="card__img" href="product.html?id=${p.id}">
+    <a class="card__img" href="product.html#${p.id}">
       ${p.badge ? `<span class="card__badge">${p.badge}</span>` : ""}${pic}
     </a>
     <div class="card__body">
-      <a class="card__title" href="product.html?id=${p.id}">${p.title}</a>
+      <a class="card__title" href="product.html#${p.id}">${p.title}</a>
       <ul class="card__props">
         <li>Профиль: ${p.profile} (${p.profileType.toLowerCase()})</li>
         <li>Управление: ${LABELS.control[p.control].toLowerCase()}</li>
@@ -165,7 +165,7 @@ function productCard(p) {
       </ul>
       <div class="card__price">от ${rub(p.price)} <small>/ м²</small></div>
       <div class="card__actions">
-        <a class="btn btn--outline" href="product.html?id=${p.id}">Подробнее</a>
+        <a class="btn btn--outline" href="product.html#${p.id}">Подробнее</a>
         <button class="btn" data-modal="Рассчитать стоимость" data-subject="${p.title}">Расчёт</button>
       </div>
     </div>
@@ -233,7 +233,8 @@ function initCatalog() {
 function initProduct() {
   const el = document.getElementById("product");
   if (!el) return;
-  const id = +new URLSearchParams(location.search).get("id");
+  const id = +(location.hash.slice(1) || new URLSearchParams(location.search).get("id"));
+  window.addEventListener("hashchange", () => location.reload());
   const p = PRODUCTS.find(x => x.id === id) || PRODUCTS[0];
   document.title = `${p.title} — ${COMPANY.name}`;
   document.getElementById("crumb").textContent = p.title;
