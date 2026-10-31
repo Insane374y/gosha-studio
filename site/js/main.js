@@ -535,20 +535,6 @@ function initSpread() {
   };
 }
 
-/* ---------- Lens sweep: координаты курсора для подсветки ---------- */
-const GLOW_SEL = ".btn, .cat, .card, .feature, .stat, .cta, .hero__img, .contacts__box";
-function initGlow() {
-  document.addEventListener("pointermove", (e) => {
-    let el = e.target.closest?.(GLOW_SEL);
-    while (el) {
-      const r = el.getBoundingClientRect();
-      el.style.setProperty("--mx", `${e.clientX - r.left}px`);
-      el.style.setProperty("--my", `${e.clientY - r.top}px`);
-      el = el.parentElement?.closest(GLOW_SEL);
-    }
-  }, { passive: true });
-}
-
 /* ---------- Линия под заголовками ---------- */
 function initHeadings() {
   const hs = document.querySelectorAll(".section h2, .seo-text h2");
@@ -562,7 +548,6 @@ function initHeadings() {
 document.addEventListener("DOMContentLoaded", () => {
   initSplit();
   initTicker();
-  initGlow();
   initHeadings();
   const spread = initSpread();
   if (spread) {

@@ -364,13 +364,9 @@ select:focus, input:focus, textarea:focus { outline: 2px solid var(--accent); ou
   background: linear-gradient(90deg, var(--accent-light), var(--accent-dark)); transition: width 1s cubic-bezier(.2,.7,.2,1) .15s; }
 .section h2.seen::after, .seo-text h2.seen::after { width: 72px; }
 
-/* ===== Lens sweep: свет под курсором + пробегающий блик ===== */
+/* ===== Light sweep: пробегающий блик при наведении ===== */
 :is(.btn, .cat, .card, .feature, .stat, .cta, .hero__img, .contacts__box) { position: relative; overflow: hidden; isolation: isolate; --glow: rgba(255,255,255,.42); --sweep: rgba(255,255,255,.55); }
 :is(.cat, .card, .feature, .stat, .contacts__box, .btn--outline:not(.btn--light)) { --glow: rgba(59,158,255,.16); --sweep: rgba(124,196,255,.35); }
-:is(.btn, .cat, .card, .feature, .stat, .cta, .hero__img, .contacts__box)::after {
-  content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; z-index: 3; opacity: 0; transition: opacity .35s;
-  background: radial-gradient(240px circle at var(--mx, 50%) var(--my, 50%), var(--glow), transparent 62%); }
-:is(.btn, .cat, .card, .feature, .stat, .cta, .hero__img, .contacts__box):hover::after { opacity: 1; }
 :is(.btn, .cat, .card, .feature, .stat, .cta, .hero__img, .contacts__box)::before {
   content: ""; position: absolute; top: -10%; bottom: -10%; left: -50%; width: 35%; pointer-events: none; z-index: 3; opacity: 0;
   background: linear-gradient(100deg, transparent, var(--sweep), transparent); transform: skewX(-20deg); }
