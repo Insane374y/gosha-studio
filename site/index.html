@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Роллеты и ворота под ключ — РоллетПро</title>
+  <meta name="description" content="Роллеты для дверей и окон, роллетные решётки, гаражные и секционные ворота, автоматика. Бесплатный замер, установка, гарантия.">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body data-page="index.html">
+  <div id="header"></div>
+
+  <section class="hero">
+    <div class="container">
+      <div>
+        <h1>Роллеты и ворота с установкой под ключ</h1>
+        <p>Изготовим по вашим размерам, привезём и установим. Защита от взлома, шума, пыли и солнца.</p>
+        <ul class="hero__list">
+          <li>Бесплатный выезд замерщика</li>
+          <li>Изготовление от 3 дней</li>
+          <li>Гарантия 3 года на изделия и монтаж</li>
+        </ul>
+        <div class="hero__btns">
+          <button class="btn" data-modal="Вызвать замерщика">Вызвать замерщика бесплатно</button>
+          <a class="btn btn--outline btn--light" href="catalog.html">Смотреть каталог</a>
+        </div>
+      </div>
+      <div class="hero__img" id="hero-img"></div>
+    </div>
+  </section>
+
+  <section class="section" id="services">
+    <div class="container">
+      <h2>Каталог продукции</h2>
+      <div class="cats" id="cats"></div>
+    </div>
+  </section>
+
+  <section class="section section--white">
+    <div class="container">
+      <h2>Почему выбирают нас</h2>
+      <div class="features">
+        <div class="feature"><div class="feature__icon">📏</div><h3>Замер бесплатно</h3><p>Приедем в удобное время и подберём решение под ваш проём.</p></div>
+        <div class="feature"><div class="feature__icon">🏭</div><h3>Своё производство</h3><p>Делаем роллеты по точным размерам, без переплаты посредникам.</p></div>
+        <div class="feature"><div class="feature__icon">🔧</div><h3>Монтаж за 1 день</h3><p>Опытные монтажники, аккуратная работа, уборка после себя.</p></div>
+        <div class="feature"><div class="feature__icon">🛡️</div><h3>Гарантия 3 года</h3><p>И на изделие, и на установку. Сервис и ремонт после гарантии.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="steps">
+    <div class="container">
+      <h2>Как мы работаем</h2>
+      <div class="steps">
+        <div class="step"><h3>Заявка</h3><p>Звоните или оставляете заявку на сайте.</p></div>
+        <div class="step"><h3>Замер</h3><p>Замерщик приезжает и считает точную цену.</p></div>
+        <div class="step"><h3>Договор</h3><p>Фиксируем цену и сроки в договоре.</p></div>
+        <div class="step"><h3>Изготовление</h3><p>Делаем изделие на производстве.</p></div>
+        <div class="step"><h3>Установка</h3><p>Монтируем и показываем, как пользоваться.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="cta">
+        <div>
+          <h2>Рассчитаем стоимость за 15 минут</h2>
+          <p>Оставьте телефон и размеры проёма — менеджер перезвонит и назовёт цену.</p>
+        </div>
+        <form class="form" data-form>
+          <input type="text" name="name" placeholder="Ваше имя" required>
+          <input type="tel" name="phone" placeholder="+7 (___) ___-__-__" required>
+          <input type="text" name="size" placeholder="Размеры проёма, например 1,5 × 2 м">
+          <button class="btn btn--block" type="submit">Получить расчёт</button>
+          <p class="form__note">Нажимая кнопку, вы соглашаетесь на обработку персональных данных.</p>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <div id="footer"></div>
+
+  <script src="js/data.js"></script>
+  <script src="js/main.js"></script>
+  <script>document.getElementById("hero-img").innerHTML = drawPicture("shutter", "#c9ced6");</script>
+</body>
+</html>
