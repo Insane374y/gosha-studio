@@ -119,6 +119,46 @@ function whip(g, t, SH) {
   g.restore();
 }
 
+// ---------------------------------------------------------------- субтитры
+const CAP_Y = H - 540, CAP_LH = 100, CAP_MAXW = 940, CAP_HOT = "#f5c518";
+// крючок — куски субтитров до первого «?» (не больше 4); держится до конца фразы + 0.3 с
+const HOOK_N = (() => { const i = CAPTIONS.findIndex((c) => c.text.includes("?")); return i >= 0 && i < 4 ? i + 1 : 0; })();
+const HOOK_END = HOOK_N ? CAPTIONS[HOOK_N - 1].e + 0.3 : 0;
+// какое слово куска звучит в момент t: время куска делим между словами пропорционально длине слова
+function activeWord(c, words, t) {
+  if (t < c.s || t >= c.e) return -1;
+  const total = words.reduce((a, w) => a + w.length + 1, 0); let acc = 0; const k = (t - c.s) / Math.max(0.05, c.e - c.s);
+  for (let i = 0; i < words.length; i++) { acc += words[i].length + 1; if (k < acc / total) return i; } return words.length - 1;
+}
+// разбить слова на строки по ширине; каждая строка — список [слово, индекс]
+function capLines(words) { const lines = []; let cur = [], w = 0; const sp = G.measureText(" ").width + 16;
+  words.forEach((wd, i) => { const ww = G.measureText(wd).width; if (cur.length && w + sp + ww > CAP_MAXW) { lines.push(cur); cur = []; w = 0; } w += (cur.length ? sp : 0) + ww; cur.push([wd, i]); });
+  if (cur.length) lines.push(cur); return lines; }
+function drawCapLine(line, y, hot) {
+  const sp = G.measureText(" ").width + 16, tw = line.reduce((a, [wd], j) => a + G.measureText(wd).width + (j ? sp : 0), 0); let x = -tw / 2;
+  for (const [wd, i] of line) { const ww = G.measureText(wd).width, cx = x + ww / 2, on = i === hot;
+    G.save(); if (on) { G.translate(cx, y); G.scale(1.08, 1.08); G.translate(-cx, -y); }
+    G.fillStyle = "rgba(0,0,0,0.55)"; G.fillText(wd, cx, y + 7); G.lineWidth = 18; G.strokeStyle = "#000"; G.strokeText(wd, cx, y);
+    G.fillStyle = on ? CAP_HOT : "#fff"; G.fillText(wd, cx, y); G.restore(); x += ww + sp; }
+}
+function drawCaptions(t) {
+  G.save(); G.font = `900 92px ${FONT_TITLE}`; G.textAlign = "center"; G.textBaseline = "middle"; G.lineJoin = "round";
+  // крючок: все уже прозвучавшие куски первой фразы остаются на экране строчками
+  if (HOOK_N && t < HOOK_END) {
+    // все прозвучавшие куски — одним текстом, переносится по ширине; звучащее слово жёлтое
+    const words = [], hot = []; for (const c of CAPTIONS.slice(0, HOOK_N)) { if (t < c.s) break; const ws = c.text.toUpperCase().split(" "), h = activeWord(c, ws, t); if (h >= 0) hot.push(words.length + h); words.push(...ws); }
+    const lines = capLines(words), k = clamp((t - CAPTIONS[0].s) / 0.18, 0, 1), s0 = 0.72 + 0.28 * easeOutBack(k, 2.0);
+    G.translate(W / 2, CAP_Y); G.scale(s0, s0);
+    lines.forEach((ln, r) => drawCapLine(ln, (r - (lines.length - 1) / 2) * CAP_LH, hot.length ? hot[0] : -1));
+    G.restore(); return;
+  }
+  const c = CAPTIONS.slice(HOOK_N).find((c) => t >= c.s && t < Math.max(c.e, c.s + 0.2));
+  if (c) { const k = clamp((t - c.s) / 0.18, 0, 1), s = 0.72 + 0.28 * easeOutBack(k, 2.0), words = c.text.toUpperCase().split(" "), hot = activeWord(c, words, t), lines = capLines(words);
+    G.translate(W / 2, CAP_Y); G.scale(s, s);
+    lines.forEach((ln, i) => drawCapLine(ln, (i - (lines.length - 1) / 2) * CAP_LH, hot)); }
+  G.restore();
+}
+
 function fitText(g, txt, maxW, size) { g.font = `900 ${size}px ${FONT_TITLE}`; const w = g.measureText(txt).width; return w > maxW ? Math.floor(size * maxW / w) : size; }
 function renderFrame(t) {
   const V = window.VIDEO, SH = V.shots, titleEnd = Math.min(V.titleEnd ?? 1.0, 1.0);
@@ -154,16 +194,9 @@ function renderFrame(t) {
       TEXT.title[LANG].forEach((ln, i) => { const sz = fitText(G, ln, 960, 104); outlinedText(G, ln, 0, i * (sz + 12), sz, "#f5c518", 18, "center", i % 2 ? -0.02 : 0.02); }); G.restore(); }
     G.restore();
   }
-  // субтитры
-  if (t >= titleEnd - 0.05) {
-    const c = CAPTIONS.find((c) => t >= c.s && t < Math.max(c.e, c.s + 0.2));
-    if (c) { const k = clamp((t - c.s) / 0.18, 0, 1), s = 0.72 + 0.28 * easeOutBack(k, 2.0);
-      G.save(); G.translate(W / 2, H - 540); G.scale(s, s); G.font = `900 92px ${FONT_TITLE}`; G.textAlign = "center"; G.textBaseline = "middle"; G.lineJoin = "round";
-      const words = c.text.toUpperCase().split(" "), lines = []; let cur = "";
-      for (const w of words) { const tr = cur ? cur + " " + w : w; if (G.measureText(tr).width > 940 && cur) { lines.push(cur); cur = w; } else cur = tr; } if (cur) lines.push(cur);
-      lines.forEach((ln, i) => { const y = (i - (lines.length - 1) / 2) * 100; G.fillStyle = "rgba(0,0,0,0.55)"; G.fillText(ln, 0, y + 7); G.lineWidth = 18; G.strokeStyle = "#000"; G.strokeText(ln, 0, y); G.fillStyle = "#fff"; G.fillText(ln, 0, y); });
-      G.restore(); }
-  }
+  // субтитры: белые, слово, которое звучит сейчас, вспыхивает жёлтым.
+  // Крючок (первая фраза до «?») не сменяется кусками, а копится строчками и держится, пока звучит вся фраза.
+  drawCaptions(t);
   // (вспышка на склейке убрана: смена ракурса — движением камеры, между мирами — whip-переход ниже)
 }
 window.renderFrame = renderFrame;
