@@ -32,12 +32,13 @@ const SHOTS_MAIN = [
       const sx = 230, sy = 420, ex = 820, ey = 1330, dead = t > 15.4;
       g.save(); const sr = 170; g.fillStyle = dead ? "#5a5a66" : "#ffe066"; g.strokeStyle = "#20180f"; g.lineWidth = 8; g.beginPath(); g.arc(sx, sy, sr, 0, 7); g.fill(); g.stroke();
       if (!dead) { g.strokeStyle = "#ffd23f"; g.lineWidth = 12; for (let i = 0; i < 12; i++) { const a = i * Math.PI / 6 + t * 0.3; g.beginPath(); g.moveTo(sx + Math.cos(a) * sr * 1.2, sy + Math.sin(a) * sr * 1.2); g.lineTo(sx + Math.cos(a) * sr * 1.45, sy + Math.sin(a) * sr * 1.45); g.stroke(); } } g.restore();
+      if (!dead) emitGlow(sx, sy, sr * 1.9, "#ffe27a", 1);
       drawGlobe(g, ex, ey, 140, t);
       fobbinSprite(g, ex + 10, ey - 132, 90, { expr: t < 18.8 ? "realize" : "smug", lookX: -0.9 });
       // путь света
       g.save(); g.setLineDash([16, 18]); g.strokeStyle = "rgba(255,240,180,0.5)"; g.lineWidth = 5; g.beginPath(); g.moveTo(sx + 150, sy + 140); g.lineTo(ex - 120, ey - 100); g.stroke(); g.restore();
       const k = ramp(t, 15.4, 18.0), px = sx + 150 + (ex - 120 - sx - 150) * k, py = sy + 140 + (ey - 100 - sy - 140) * k;
-      if (t > 15.4 && t < 18.6) { const gr = g.createRadialGradient(px, py, 0, px, py, 60); gr.addColorStop(0, "rgba(255,245,180,1)"); gr.addColorStop(1, "rgba(255,245,180,0)"); g.fillStyle = gr; g.beginPath(); g.arc(px, py, 60, 0, 7); g.fill(); }
+      if (t > 15.4 && t < 18.6) { emitGlow(px, py, 90, "#fff3b0", 1); const gr = g.createRadialGradient(px, py, 0, px, py, 60); gr.addColorStop(0, "rgba(255,245,180,1)"); gr.addColorStop(1, "rgba(255,245,180,0)"); g.fillStyle = gr; g.beginPath(); g.arc(px, py, 60, 0, 7); g.fill(); }
       const mins = Math.min(8, Math.floor(ramp(t, 15.4, 18.0) * 8 + 0.0001));
       bubbleLabel(g, 760, 360, `${mins}:00 / 8:00`, t, 15.6, { size: 64, bg: "#ffffff" });
       if (t > 18.8) bubbleLabel(g, 560, 1080, L("oldLight"), t, 19.9, { size: 60, bg: "#f5c518" });
@@ -59,9 +60,11 @@ const SHOTS_MAIN = [
       for (let i = 0; i < 6; i++) sc.box([0.6 + i * 0.14, 0.45, -1.8], [0.06, 0.5, 0.06], "#c9ccd1", { zb: 0.09, shadow: false });
       drawActor(sc, t, fobbin({ pos: [0.0, 0, -0.8], expr: [[24.7, "nervous"], [26.9, "realize"], [29.2, "nervous"], [31.4, "shock"]], shiver: [[24.9, true]], ...hug }));
       tag(sc, [0.95, 0.95, -1.85], L("warm"), t, 29.3, { size: 46, until: 31.0 }); },
-    over(g, t) { const lv = 0.85 - 0.8 * ramp(t, 25.2, 33.0); drawThermo(g, 930, 520, 340, lv);
-      if (t > 30.9) bubbleLabel(g, 800, 840, L("week"), t, 31.0, { size: 50 });
-      if (t > 32.9) bubbleLabel(g, 780, 260, L("below"), t, 33.0, { size: 74, bg: "#8fd0ff" }); } },
+    over(g, t) { const lv = 0.85 - 0.6 * ramp(t, 25.2, 30.8); if (t < 30.9) drawThermo(g, 930, 520, 340, lv);
+      // инфографика: всплывающая карточка — средняя температура сейчас → через неделю → через год
+      infoCard(g, W / 2, 560, L("temp"), t, 30.9, { w: 900, h: 560, dur: 2.8,
+        draw: (g2, x, y, w, h, k) => chartLine(g2, x, y, w, h, [[L("now"), 59], [L("week"), 0], [L("year"), -100]], k,
+          { fmt: (v) => `${v}°F`, color: (v) => (v > 20 ? INFO.hot : INFO.cold) }) }); } },
   // 6. Луна тоже гаснет
   { t0: 34.1, t1: 38.2, cam: [[34.1, [-0.3, 1.1, 1.0], [0.2, 1.55, -1.8], 58], [38.2, [-0.2, 1.1, 0.75], [0.2, 1.6, -1.8], 54]], focus: [0.2, 1.7, -1.9],
     dark: () => 0.45,

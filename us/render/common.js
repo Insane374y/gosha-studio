@@ -1,7 +1,9 @@
 // Общий кадр для американских роликов: шот → сцена → свет → экранные слои → титр → субтитры.
 // Особенности:
 //   • титр «WHAT IF …» не дольше 1 с и рисуется поверх действия, а не вместо него;
-//   • все надписи берутся из text_NAME.js (en + ru), в коде шотов — только ключи: L("sun").
+//   • все надписи берутся из text_NAME.js (en + ru), в коде шотов — только ключи: L("sun");
+//   • мягкое свечение: всё, что излучает свет (лампы, фонари, окна, солнце, фонарик, emitGlow), получает ореол;
+//     сила — VIDEO.bloom / shot.bloom (по умолчанию 1), 0 — выключить. Плюс редкие тёплые пылинки в воздухе (motes).
 const cvs = document.getElementById("c"), G = cvs.getContext("2d");
 const LANG = "en";
 // надпись по ключу из TEXT (text_NAME.js); если ключа нет — сам ключ, чтобы ошибку было видно в кадре
@@ -26,12 +28,39 @@ function shiftShots(shots, d) {
   }));
 }
 
+// Мягкое свечение: световой слой (engine.js → LX) размывается в двух радиусах и ложится на кадр «экраном».
+const BLA = document.createElement("canvas"), BLB = document.createElement("canvas");
+for (const c of [BLA, BLB]) { c.width = lightCv.width; c.height = lightCv.height; }
+function bloom(g, k) {
+  if (k <= 0) return;
+  const a = BLA.getContext("2d"), b = BLB.getContext("2d");
+  a.clearRect(0, 0, BLA.width, BLA.height); a.filter = "blur(3px)"; a.drawImage(lightCv, 0, 0); a.filter = "none";
+  b.clearRect(0, 0, BLB.width, BLB.height); b.filter = "blur(16px)"; b.drawImage(lightCv, 0, 0); b.filter = "none";
+  g.save(); g.globalCompositeOperation = "screen"; g.imageSmoothingEnabled = true; g.imageSmoothingQuality = "high";
+  g.globalAlpha = 0.85 * k; g.drawImage(BLA, 0, 0, W, H);
+  g.globalAlpha = 0.9 * k; g.drawImage(BLB, 0, 0, W, H); g.drawImage(BLB, 0, 0, W, H);
+  g.restore();
+}
+// Пылинки в воздухе: редкие, тёплые, медленно плывут — для глубины и «живого» воздуха, не отвлекают.
+function motes(g, t, k) {
+  if (k <= 0) return;
+  g.save(); g.globalCompositeOperation = "screen";
+  for (let i = 0; i < 28; i++) {
+    const h1 = Math.sin(i * 12.9898) * 43758.5453, h2 = Math.sin(i * 78.233) * 12345.678, fx = h1 - Math.floor(h1), fy = h2 - Math.floor(h2);
+    const x = ((fx * W + t * (8 + fx * 14) + Math.sin(t * 0.4 + i) * 30) % (W + 40) + W + 40) % (W + 40) - 20;
+    const y = ((fy * H - t * (10 + fy * 18)) % H + H) % H, r = 2 + (i % 4) * 1.6, a = k * (0.12 + 0.18 * (0.5 + 0.5 * Math.sin(t * 0.8 + i * 1.7)));
+    const gr = g.createRadialGradient(x, y, 0, x, y, r * 3); gr.addColorStop(0, `rgba(255,236,200,${a})`); gr.addColorStop(1, "rgba(255,236,200,0)");
+    g.fillStyle = gr; g.fillRect(x - r * 3, y - r * 3, r * 6, r * 6);
+  }
+  g.restore();
+}
+
 function fitText(g, txt, maxW, size) { g.font = `900 ${size}px ${FONT_TITLE}`; const w = g.measureText(txt).width; return w > maxW ? Math.floor(size * maxW / w) : size; }
 function renderFrame(t) {
   const V = window.VIDEO, SH = V.shots, titleEnd = Math.min(V.titleEnd ?? 1.0, 1.0);
   const sh = SH.find((s) => t >= s.t0 && t < s.t1) ?? SH[SH.length - 1];
   G.setTransform(1, 0, 0, 1, 0, 0); G.filter = "none"; G.globalAlpha = 1;
-  G.fillStyle = "#000"; G.fillRect(0, 0, W, H);
+  G.fillStyle = "#000"; G.fillRect(0, 0, W, H); lightReset();
   if (sh.screen) sh.screen(G, t);       // плоская экранная сцена (космос, схема)
   else {
     const [, p, l, fov] = camAt(t, sh.cam);
@@ -44,6 +73,8 @@ function renderFrame(t) {
     warmLight(G, W * 0.15, H * 0.3, H * 0.6, "rgba(255,220,170,A)", sh.warm ?? 0.22);
   }
   if (sh.dark) { const d = sh.dark(t); if (d > 0) { G.fillStyle = `rgba(8,10,35,${d})`; G.fillRect(0, 0, W, H); } }
+  bloom(G, sh.bloom ?? V.bloom ?? 1);
+  motes(G, t, sh.motes ?? (sh.screen ? 0 : V.motes ?? 1));
   if (sh.post) sh.post(G, t);
   vignette(G, 0.42);
   if (sh.over) sh.over(G, t);

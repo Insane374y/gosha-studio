@@ -1,6 +1,14 @@
 // 2.5D-движок кадра: перспективная камера, комнаты и предметы-коробки с обводкой, дудлы-билборды,
 // размытие по глубине, мягкий свет. Всё в метрах: x вправо, y вверх, z к камере. Время — секунды голоса.
 const W = 1080, H = 1920, INKC = "#20180f";
+// ---------------------------------------------------------------- световой слой: всё, что излучает свет (лампы, фонари, окна, солнце).
+// Кадр получает из него мягкий ореол (common.js → bloom). Светится только то, что сюда нарисовано, а не любое яркое место.
+const LIGHT_DS = 0.25;
+const lightCv = document.createElement("canvas"); lightCv.width = W * LIGHT_DS; lightCv.height = H * LIGHT_DS;
+const LX = lightCv.getContext("2d");
+function lightReset() { LX.setTransform(1, 0, 0, 1, 0, 0); LX.clearRect(0, 0, lightCv.width, lightCv.height); LX.setTransform(LIGHT_DS, 0, 0, LIGHT_DS, 0, 0); }
+// светящееся пятно в экранных координатах — для плоских сцен и мелких источников (фонарик, звезда, экран)
+function emitGlow(x, y, r, col, a = 1) { LX.save(); LX.globalAlpha = a; const gr = LX.createRadialGradient(x, y, 0, x, y, r); gr.addColorStop(0, col); gr.addColorStop(1, "rgba(0,0,0,0)"); LX.fillStyle = gr; LX.fillRect(x - r, y - r, 2 * r, 2 * r); LX.restore(); }
 const v3 = { sub: (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]], add: (a, b) => [a[0] + b[0], a[1] + b[1], a[2] + b[2]],
   mul: (a, k) => [a[0] * k, a[1] * k, a[2] * k], dot: (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2],
   cross: (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]],
@@ -54,7 +62,9 @@ class Scene {
   // плоская картинка на плоскости (вывеска, окно, экран): center, w, h, нормаль по оси rotY, painter(g, pw, ph)
   decal(center, w, h, rotY, painter, key, o = {}) {
     const c = this.cam.toCam(center);
-    this.items.push({ z: c[2] + (o.zb ?? 0.01), draw: (g) => drawDecal(g, this.cam, center, w, h, rotY, painter, key, o) });
+    const emit = o.emit ?? painter.glow;   // painter.glow — светящаяся часть картинки (солнце в окне, горящие окна)
+    this.items.push({ z: c[2] + (o.zb ?? 0.01), draw: (g) => { drawDecal(g, this.cam, center, w, h, rotY, painter, key, o);
+      if (emit) drawDecal(LX, this.cam, center, w, h, rotY, emit, key && key + ":glow", { frame: false, live: o.live }); } });
   }
   overlay(p, draw) { this.items.push({ z: -100, noBlur: true, draw: (g) => { const s = this.cam.P(p); if (s) draw(g, s[0], s[1]); } }); }
   sprite(p, z_bias, draw) { const c = this.cam.toCam(p); if (c[2] <= 0.05) return; this.items.push({ z: c[2] + z_bias, draw: (g) => { const s = this.cam.P(p); if (s) draw(g, s[0], s[1], this.cam.F / s[2]); } }); }
@@ -102,7 +112,8 @@ function drawBox(g, cam, p, s, col, o) {
   }
   for (const f of list) { if (f.s.length < 3) continue; g.fillStyle = f.col; pathPoly(g, f.s); g.fill(); }
   if (o.line !== false) { g.strokeStyle = INKC; g.lineWidth = o.lw ?? 3.2; g.lineJoin = "round"; for (const f of list) { if (f.s.length < 3) continue; pathPoly(g, f.s); g.stroke(); } }
-  if (o.glow) for (const f of list) { if (f.s.length < 3) continue; g.save(); g.globalCompositeOperation = "lighter"; g.globalAlpha = o.glow; g.fillStyle = col; pathPoly(g, f.s); g.fill(); g.restore(); }
+  if (o.glow) for (const f of list) { if (f.s.length < 3) continue; g.save(); g.globalCompositeOperation = "lighter"; g.globalAlpha = o.glow; g.fillStyle = col; pathPoly(g, f.s); g.fill(); g.restore();
+    LX.save(); LX.globalAlpha = Math.min(1, o.glow * 2.5); LX.fillStyle = col; pathPoly(LX, f.s); LX.fill(); LX.restore(); }
 }
 function groundShadow(g, cam, p, s) {
   const c = cam.P([p[0], 0.002, p[2]]); if (!c) return;

@@ -2,7 +2,7 @@
 const FOBBIN_LOOK = { body: "#f5c518", stripe: "#1f3a6e", hair: "curly", hairColor: "#a0522d", glasses: "#d6334a", backpack: "#3aa676", shoes: "#2f6fd6", plaster: true };
 // ================================================================= картинки для плоскостей
 function pWindow(t, ball) {
-  return (g, w, h) => {
+  const paint = (g, w, h) => {
     const sky = g.createLinearGradient(0, 0, 0, h); sky.addColorStop(0, "#8fd0ff"); sky.addColorStop(1, "#d9f1ff");
     g.fillStyle = sky; g.fillRect(0, 0, w, h);
     g.fillStyle = "#ffffff"; for (const [cx, cy, r] of [[0.25, 0.3, 0.12], [0.36, 0.26, 0.1], [0.72, 0.5, 0.09], [0.82, 0.46, 0.07]]) { g.beginPath(); g.arc(cx * w, cy * h, r * w, 0, Math.PI * 2); g.fill(); }
@@ -21,6 +21,8 @@ function pWindow(t, ball) {
     g.beginPath(); g.moveTo(w / 2, 0); g.lineTo(w / 2, h); g.moveTo(0, h * 0.45); g.lineTo(w, h * 0.45); g.stroke();
     g.strokeStyle = "#20180f"; g.lineWidth = w * 0.008; g.strokeRect(w * 0.022, h * 0.022, w * 0.956, h * 0.956);
   };
+  paint.glow = (g, w, h) => { g.globalAlpha = 0.35; g.fillStyle = "#cfeaff"; g.fillRect(0, 0, w, h); g.globalAlpha = 1; };
+  return paint;
 }
 const pDoor = (g, w, h) => {
   const gr = g.createLinearGradient(0, 0, w, 0); gr.addColorStop(0, "#3b3350"); gr.addColorStop(1, "#5a4f73");
@@ -180,7 +182,7 @@ function livingRoom(sc, t, o = {}) {
 
 // ================================================================= новые картинки
 function pSky(t, o = {}) {   // окно: день/ночь, солнце, луна, звёзды, летучая мышь
-  return (g, w, h) => {
+  const paint = (g, w, h) => {
     const night = o.night ?? 0;
     const sky = g.createLinearGradient(0, 0, 0, h);
     sky.addColorStop(0, mix("#8fd0ff", "#0b1030", night)); sky.addColorStop(1, mix("#d9f1ff", "#1b2350", night));
@@ -195,12 +197,24 @@ function pSky(t, o = {}) {   // окно: день/ночь, солнце, лу�
     g.strokeStyle = "#f7f3ea"; g.lineWidth = w * 0.045; g.strokeRect(0, 0, w, h);
     g.beginPath(); g.moveTo(w / 2, 0); g.lineTo(w / 2, h); g.moveTo(0, h * 0.45); g.lineTo(w, h * 0.45); g.stroke();
   };
+  paint.glow = (g, w, h) => {   // свет из окна: дневное небо мягко, солнце ярко, луна чуть
+    const day = 1 - (o.night ?? 0);
+    if (day > 0) { g.globalAlpha = 0.35 * day; g.fillStyle = "#cfeaff"; g.fillRect(0, 0, w, h); g.globalAlpha = 1; }
+    if (o.sun) { g.fillStyle = "#ffe27a"; g.beginPath(); g.arc(w * 0.68, h * 0.3, w * 0.2, 0, 7); g.fill(); }
+    if (o.moon) { g.globalAlpha = 0.6 * o.moon; g.fillStyle = "#f4f1d0"; g.beginPath(); g.arc(w * 0.3, h * 0.28, w * 0.1, 0, 7); g.fill(); g.globalAlpha = 1; }
+  };
+  return paint;
 }
 function mix(a, b, k) { const pa = parseInt(a.slice(1), 16), pb = parseInt(b.slice(1), 16); const c = [16, 8, 0].map((s) => Math.round(((pa >> s) & 255) * (1 - k) + ((pb >> s) & 255) * k)); return `rgb(${c.join(",")})`; }
 const pMirror = (g, w, h) => { g.fillStyle = "#cfe3f2"; g.fillRect(0, 0, w, h); g.fillStyle = "rgba(255,255,255,0.7)"; for (const [x, ww] of [[0.25, 0.08], [0.42, 0.03]]) { g.save(); g.translate(w * x, 0); g.rotate(0.35); g.fillRect(0, -h * 0.2, w * ww, h * 1.4); g.restore(); } g.strokeStyle = "#c8a24a"; g.lineWidth = w * 0.06; g.strokeRect(0, 0, w, h); };
 const pPoster = (txt, bg, fg) => (g, w, h) => { g.fillStyle = bg; g.fillRect(0, 0, w, h); g.fillStyle = fg; g.font = `900 ${h * 0.22}px Inter, sans-serif`; g.textAlign = "center"; g.textBaseline = "middle"; txt.split("\n").forEach((l, i, arr) => g.fillText(l, w / 2, h / 2 + (i - (arr.length - 1) / 2) * h * 0.26)); };
-const pFacade = (col, win) => (g, w, h) => { g.fillStyle = col; g.fillRect(0, 0, w, h); const nx = Math.max(2, Math.round(w / h * 3)), ny = 3;
-  for (let i = 0; i < nx; i++) for (let j = 0; j < ny; j++) { const x = (i + 0.2) * w / nx, y = (j + 0.2) * h / ny, ww = w / nx * 0.6, hh = h / ny * 0.55; g.fillStyle = win ?? "#a9d8ff"; g.fillRect(x, y, ww, hh); g.strokeStyle = "#20180f"; g.lineWidth = w * 0.006; g.strokeRect(x, y, ww, hh); g.beginPath(); g.moveTo(x + ww / 2, y); g.lineTo(x + ww / 2, y + hh); g.stroke(); } };
+const facadeWindows = (w, h, f) => { const nx = Math.max(2, Math.round(w / h * 3)), ny = 3;
+  for (let i = 0; i < nx; i++) for (let j = 0; j < ny; j++) f((i + 0.2) * w / nx, (j + 0.2) * h / ny, w / nx * 0.6, h / ny * 0.55); };
+const pFacade = (col, win) => { const paint = (g, w, h) => { g.fillStyle = col; g.fillRect(0, 0, w, h);
+  facadeWindows(w, h, (x, y, ww, hh) => { g.fillStyle = win ?? "#a9d8ff"; g.fillRect(x, y, ww, hh); g.strokeStyle = "#20180f"; g.lineWidth = w * 0.006; g.strokeRect(x, y, ww, hh); g.beginPath(); g.moveTo(x + ww / 2, y); g.lineTo(x + ww / 2, y + hh); g.stroke(); }); };
+  // горящие (тёплые) окна светятся, дневные — нет
+  if (win && win !== "#a9d8ff") paint.glow = (g, w, h) => facadeWindows(w, h, (x, y, ww, hh) => { g.fillStyle = win; g.fillRect(x, y, ww, hh); });
+  return paint; };
 function pFootball(t) { return (g, w, h) => { g.fillStyle = "#3f9a45"; g.fillRect(0, 0, w, h); g.strokeStyle = "#fff"; g.lineWidth = w * 0.01; g.strokeRect(w * 0.05, h * 0.08, w * 0.9, h * 0.84); g.beginPath(); g.moveTo(w / 2, h * 0.08); g.lineTo(w / 2, h * 0.92); g.stroke(); g.beginPath(); g.arc(w / 2, h / 2, h * 0.16, 0, 7); g.stroke();
   const bx = w * (0.5 + 0.35 * Math.sin(t * 1.7)), by = h * (0.5 + 0.25 * Math.sin(t * 2.3)); g.fillStyle = "#fff"; g.beginPath(); g.arc(bx, by, h * 0.05, 0, 7); g.fill();
   for (const [c, k] of [["#e8453c", 0], ["#2f6fd6", 1]]) for (let i = 0; i < 3; i++) { g.fillStyle = c; g.beginPath(); g.arc(w * (0.25 + k * 0.5 + 0.08 * Math.sin(t + i * 2)), h * (0.3 + i * 0.2), h * 0.04, 0, 7); g.fill(); } }; }
@@ -318,7 +332,10 @@ function drawBat(g, x, y, k, t) { g.save(); g.translate(x, y); const f = Math.si
   g.fillStyle = "#ffd23f"; for (const s of [-1, 1]) { g.beginPath(); g.arc(s * 0.015 * k, -0.01 * k, 0.008 * k, 0, 7); g.fill(); } g.restore(); }
 function drawLego(g, x, y, k) { g.save(); g.translate(x, y); g.fillStyle = "#e8453c"; g.strokeStyle = INKC; g.lineWidth = 3; g.beginPath(); g.roundRect(-0.06 * k, -0.035 * k, 0.12 * k, 0.035 * k, 2); g.fill(); g.stroke(); for (const dx of [-0.035, 0, 0.035]) { g.beginPath(); g.roundRect((dx - 0.012) * k, -0.05 * k, 0.024 * k, 0.016 * k, 2); g.fill(); g.stroke(); } g.restore(); }
 function drawEnvelope(g, x, y, k, rot = 0) { g.save(); g.translate(x, y); g.rotate(rot); g.fillStyle = "#fffbe6"; g.strokeStyle = INKC; g.lineWidth = 3; g.beginPath(); g.rect(-0.12 * k, -0.08 * k, 0.24 * k, 0.16 * k); g.fill(); g.stroke(); g.beginPath(); g.moveTo(-0.12 * k, -0.08 * k); g.lineTo(0, 0.01 * k); g.lineTo(0.12 * k, -0.08 * k); g.stroke(); g.fillStyle = "#d6453d"; g.beginPath(); g.arc(0, 0.01 * k, 0.015 * k, 0, 7); g.fill(); g.restore(); }
-function drawFlashlight(g, x, y, k, ang, on) { g.save(); g.translate(x, y); g.rotate(ang);
+function drawFlashlight(g, x, y, k, ang, on) {
+  if (on) { LX.save(); LX.translate(x, y); LX.rotate(ang); const gl = LX.createLinearGradient(0, 0, 1.6 * k, 0); gl.addColorStop(0, "rgba(255,245,190,0.9)"); gl.addColorStop(1, "rgba(255,245,190,0)");
+    LX.fillStyle = gl; LX.beginPath(); LX.moveTo(0.08 * k, -0.025 * k); LX.lineTo(1.6 * k, -0.45 * k); LX.lineTo(1.6 * k, 0.45 * k); LX.lineTo(0.08 * k, 0.025 * k); LX.closePath(); LX.fill(); LX.restore(); }
+  g.save(); g.translate(x, y); g.rotate(ang);
   if (on) { const gr = g.createLinearGradient(0, 0, 1.6 * k, 0); gr.addColorStop(0, "rgba(255,245,190,0.75)"); gr.addColorStop(1, "rgba(255,245,190,0)"); g.fillStyle = gr; g.beginPath(); g.moveTo(0.08 * k, -0.025 * k); g.lineTo(1.6 * k, -0.45 * k); g.lineTo(1.6 * k, 0.45 * k); g.lineTo(0.08 * k, 0.025 * k); g.closePath(); g.fill(); }
   g.fillStyle = "#3a3d44"; g.strokeStyle = INKC; g.lineWidth = 3; g.beginPath(); g.roundRect(-0.08 * k, -0.02 * k, 0.16 * k, 0.04 * k, 3); g.fill(); g.stroke(); g.fillStyle = "#f2c230"; g.beginPath(); g.roundRect(0.06 * k, -0.03 * k, 0.04 * k, 0.06 * k, 3); g.fill(); g.stroke(); g.restore(); }
 function drawThought(g, x, y, w, h, tailX, tailY, inner, alpha = 1) {   // облачко мысли

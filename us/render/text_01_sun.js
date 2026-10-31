@@ -74,6 +74,18 @@ const TEXT = {
   "stars": {
    "en": "STARS",
    "ru": "ЗВЁЗДЫ"
+  },
+  "temp": {
+   "en": "AVERAGE TEMP",
+   "ru": "СРЕДНЯЯ ТЕМПЕРАТУРА"
+  },
+  "now": {
+   "en": "NOW",
+   "ru": "СЕЙЧАС"
+  },
+  "year": {
+   "en": "1 YEAR",
+   "ru": "ЧЕРЕЗ ГОД"
   }
  }
 };

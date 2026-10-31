@@ -35,13 +35,17 @@ def video_events(name):
         b = p.chromium.launch(executable_path=os.environ.get("CHROMIUM_PATH")); pg = b.new_page(viewport={"width": 1080, "height": 1920})
         pg.goto((ROOT / f"render/index_{name}.html").as_uri()); pg.evaluate("window.ready")
         ev = pg.evaluate("""(() => {
-            const seen = new Set(), labels = [], orig = window.bubbleLabel; let T = 0;
-            // плашка рисуется с локальным временем шота: момент появления = кадр − (t − t0)
-            window.bubbleLabel = function (g, x, y, txt, t, t0, o) {
-                if (t >= t0 && !seen.has(txt + "@" + t0)) { seen.add(txt + "@" + t0); labels.push(T - (t - t0)); }
-                return orig.apply(this, arguments); };
+            const seen = new Set(), labels = []; let T = 0;
+            // плашки (bubbleLabel) и карточки инфографики (infoCard) рисуются с локальным временем шота:
+            // момент появления = кадр − (t − t0)
+            const wrap = (name) => { const orig = window[name]; if (!orig) return () => {};
+                window[name] = function (g, x, y, txt, t, t0, o) {
+                    if (t >= t0 && !seen.has(name + txt + "@" + t0)) { seen.add(name + txt + "@" + t0); labels.push(T - (t - t0)); }
+                    return orig.apply(this, arguments); };
+                return () => { window[name] = orig; }; };
+            const undo = ["bubbleLabel", "infoCard"].map(wrap);
             for (T = 0; T < window.VIDEO.total; T += 1 / 30) renderFrame(T);
-            window.bubbleLabel = orig;
+            undo.forEach((u) => u());
             return { labels, cuts: window.VIDEO.shots.map((s) => s.t0).filter((x) => x > 0), total: window.VIDEO.total };
         })()""")
         b.close()
