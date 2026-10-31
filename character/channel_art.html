@@ -4,7 +4,8 @@
 <script src="../us/render/doodle.js"></script>
 <script>
 // Аватарка и шапка канала «What if, Fobbin?»: Fobbin в лаборатории. Наша графика (дудл-персонаж, чёрный контур),
-// но свет и материалы «реалистичные»: тёмная лаборатория, светящиеся колбы, цветной контурный свет, глубина резкости,
+// но свет и материалы «реалистичные». Свет — только от естественного источника (лампа): колбы цветные, но не светятся.
+// Глубина резкости,
 // лучи, пылинки, зерно. Режим задаётся в адресе: ?mode=avatar (1500×1500) или ?mode=banner (2560×1440).
 // Аватар рисуется в логических координатах 800×800 и масштабе SC — сразу в высоком разрешении, без растягивания.
 const MODE = new URLSearchParams(location.search).get("mode") ?? "banner";
@@ -38,7 +39,6 @@ function background(c, s, cx) {
       const h = (70 + R() * 90) * s, w = (34 + R() * 26) * s, col = ["#3fd28a", "#38c6e8", "#e05ad2", "#f2a33c", "#c9d9e8"][Math.floor(R() * 5)];
       c.fillStyle = "rgba(200,230,255,0.18)"; c.fillRect(x, sy - h, w, h);
       c.fillStyle = col; c.globalAlpha = 0.75; c.fillRect(x, sy - h * (0.35 + R() * 0.4), w, h * 0.6); c.globalAlpha = 1;
-      if (R() > 0.55) LIGHTS.push([x + w / 2, sy - h * 0.4, 60 * s, col, 0.35]);
     }
   }
 }
@@ -66,7 +66,6 @@ function flask(c, x, y, s, col, kind = "erlen") {
   c.fillStyle = "#cfe3f2"; c.strokeStyle = INK; c.lineWidth = 6 * s; const nh = kind === "tube" ? 200 : kind === "round" ? 170 : 150;
   c.beginPath(); c.roundRect(-30 * s, -(nh + 10) * s, 60 * s, 16 * s, 6 * s); c.fill(); c.stroke();
   c.restore();
-  LIGHTS.push([x, y + top * 0.6, 170 * s, col, 1]);
 }
 const shadeCol = (hex, k) => { const n = parseInt(hex.slice(1), 16); return `rgb(${[(n >> 16) & 255, (n >> 8) & 255, n & 255].map((v) => Math.round(v * k)).join(",")})`; };
 // пар над колбой
@@ -91,20 +90,24 @@ function scene() {
   // Fobbin
   const [fc, fx] = layer(CW, CH);
   drawDoodle(fx, FOBBIN, { expr: "grin", lookX: MODE === "avatar" ? 0.3 : 0.55, tilt: -0.04, blink: false, bonk: 0, breathe: 0,
-    ...(MODE === "avatar" ? { handF: [-0.3, 0.6], bendF: -0.25, handB: [0.62, 1.12], bendB: 0.35 }     // аватар: колба справа
-                          : { handF: [-0.62, 1.12], bendF: -0.35, handB: [0.3, 0.6], bendB: 0.25 }) });   // шапка: колба слева, подальше от названия
-  const fh = MODE === "avatar" ? 1000 : CHT * 0.98, fw = fh * PLANE_W / PLANE_H, fxp = MODE === "avatar" ? cx - 40 : cx - 360, fbottom = MODE === "avatar" ? 960 : tableY + 120;
+    ...(MODE === "avatar" ? { handF: [-0.11, 0.44], bendF: 0.15, handB: [0.11, 0.44], bendB: -0.15 }   // аватар: колба двумя руками перед собой — симметрично
+                          : { handF: [-0.28, 0.84], bendF: -0.2, handB: [0.2, 0.46], bendB: -0.12 }) });   // шапка: колба в поднятой левой руке; обе руки ~0.22 длиной
+  const fh = MODE === "avatar" ? 1000 : CHT * 0.98, fw = fh * PLANE_W / PLANE_H, fxp = MODE === "avatar" ? cx : cx - 360, fbottom = MODE === "avatar" ? 830 : tableY + 120;   // аватар: ровно по центру
   const ftop = fbottom - fh, k = fh / PLANE_H, P = (x, z) => [fxp + x * k, ftop + (PLANE_H - z) * k];
   // колбы на столе (позади и перед персонажем)
   const fl = MODE === "avatar"
-    ? [[130, 700, 0.9, "#3fd28a", "erlen"], [700, 700, 0.75, "#e05ad2", "round"]]
+    ? [[115, 700, 0.85, "#3fd28a", "erlen"], [685, 700, 0.85, "#e05ad2", "erlen"]]   // симметрично относительно центра
     : [[cx - 900, tableY, 1.1, "#3fd28a", "erlen"], [cx - 700, tableY, 1.0, "#f2a33c", "tube"], [cx - 640, tableY, 0.9, "#38c6e8", "tube"], [cx + 820, tableY, 1.15, "#e05ad2", "round"], [cx + 1020, tableY, 1.0, "#38c6e8", "erlen"]];
   for (const [x, y, sc, col, kind] of fl) flask(g, x, y, sc, col, kind);
-  steam(g, fl[0][0], fl[0][1] - 170 * fl[0][2], 1, "rgb(120,255,190)");
-  // колба в поднятой руке: рисуем до персонажа, чтобы ладонь лежала на горлышке
-  const [hx, hy] = MODE === "avatar" ? P(0.62, 1.12) : P(-0.62, 1.12), hs = MODE === "avatar" ? 0.85 : 1.0; flask(g, hx, hy + 150 * hs, hs, "#38c6e8", "round");
-  steam(g, hx, hy - 40 * hs, 1, "rgb(140,230,255)");
-  g.drawImage(fc, fxp - fw / 2, ftop, fw, fh);   // fc — слой CW×CH, рисуем в нужный размер
+  steam(g, fl[0][0], fl[0][1] - 170 * fl[0][2], 1, "rgb(235,240,245)");
+  if (MODE === "avatar") {   // аватар: колба перед грудью, ладони по бокам колбы
+    g.drawImage(fc, fxp - fw / 2, ftop, fw, fh);
+    const [ax, ay] = P(0, 0.44); flask(g, ax, ay + 55, 0.78, "#38c6e8", "round");
+    const [l1, l2] = [P(-0.11, 0.44), P(0.11, 0.44)]; for (const [x, y] of [l1, l2]) { g.fillStyle = INK; g.beginPath(); g.arc(x, y, 0.05 * k, 0, 7); g.fill(); }
+  } else {   // шапка: колба в поднятой руке — рисуем до персонажа, ладонь на горлышке
+    const [hx, hy] = P(-0.28, 0.84); flask(g, hx, hy + 110, 0.75, "#38c6e8", "round");
+    g.drawImage(fc, fxp - fw / 2, ftop, fw, fh);
+  }
   // контурный свет на Fobbin от колб и лампы: кромка со стороны каждого источника + цветной ореол
   rim(fc, fxp - fw / 2, ftop, fw, fh);
   // свечение (bloom) всех источников
