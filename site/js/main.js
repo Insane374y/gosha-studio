@@ -437,23 +437,6 @@ function initCounters() {
   els.forEach((el) => io.observe(el));
 }
 
-/* ---------- Карточки наклоняются за мышью ---------- */
-function initTilt() {
-  if (reduceMotion || !window.matchMedia("(pointer: fine)").matches) return;
-  const sel = ".card, .cat, .feature, .stat";
-  document.addEventListener("pointermove", (e) => {
-    const el = e.target.closest(sel);
-    document.querySelectorAll(".tilting").forEach((x) => { if (x !== el) resetTilt(x); });
-    if (!el) return;
-    const r = el.getBoundingClientRect();
-    const x = (e.clientX - r.left) / r.width - 0.5, y = (e.clientY - r.top) / r.height - 0.5;
-    el.classList.add("tilt", "tilting");
-    el.style.transform = `perspective(900px) rotateX(${(-y * 7).toFixed(2)}deg) rotateY(${(x * 7).toFixed(2)}deg) translateY(-4px)`;
-  });
-  document.addEventListener("pointerleave", () => document.querySelectorAll(".tilting").forEach(resetTilt));
-  function resetTilt(x) { x.classList.remove("tilting"); x.style.transform = ""; }
-}
-
 /* ---------- Запуск: всё, что зависит от прокрутки ---------- */
 document.addEventListener("DOMContentLoaded", () => {
   const bar = document.createElement("div");
@@ -472,7 +455,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const pinUpdate = initPin();
   initReveal();
   initCounters();
-  initTilt();
 
   let ticking = false;
   const update = () => {
@@ -496,7 +478,6 @@ document.addEventListener("DOMContentLoaded", () => {
 /* =====================================================================
    СОВРЕМЕННЫЕ ЭФФЕКТЫ
    ===================================================================== */
-const finePointer = window.matchMedia("(pointer: fine)").matches;
 
 /* ---------- Заголовок по словам ---------- */
 function initSplit() {
@@ -568,41 +549,6 @@ function initGlow() {
   }, { passive: true });
 }
 
-/* ---------- Свой курсор ---------- */
-function initCursor() {
-  if (!finePointer || reduceMotion) return;
-  const ring = document.createElement("div"); ring.className = "cursor";
-  const dot = document.createElement("div"); dot.className = "cursor-dot";
-  document.body.append(ring, dot);
-  let mx = -100, my = -100, rx = -100, ry = -100;
-  document.addEventListener("pointermove", (e) => {
-    mx = e.clientX; my = e.clientY;
-    ring.classList.add("on"); dot.classList.add("on");
-    ring.classList.toggle("big", !!e.target.closest?.("a, button, input, select, textarea, label, .cat, .card"));
-  }, { passive: true });
-  document.documentElement.addEventListener("pointerleave", () => { ring.classList.remove("on"); dot.classList.remove("on"); });
-  const loop = () => {
-    rx += (mx - rx) * 0.18; ry += (my - ry) * 0.18;
-    ring.style.transform = `translate3d(${rx}px, ${ry}px, 0)`;
-    dot.style.transform = `translate3d(${mx}px, ${my}px, 0)`;
-    requestAnimationFrame(loop);
-  };
-  requestAnimationFrame(loop);
-}
-
-/* ---------- Кнопки-магниты ---------- */
-function initMagnetic() {
-  if (!finePointer || reduceMotion) return;
-  document.querySelectorAll(".hero__btns .btn, .header__cta, .cta .btn").forEach((b) => {
-    b.addEventListener("pointermove", (e) => {
-      const r = b.getBoundingClientRect();
-      const x = e.clientX - r.left - r.width / 2, y = e.clientY - r.top - r.height / 2;
-      b.style.transform = `translate(${(x * 0.22).toFixed(1)}px, ${(y * 0.3).toFixed(1)}px)`;
-    });
-    b.addEventListener("pointerleave", () => { b.style.transform = ""; });
-  });
-}
-
 /* ---------- Линия под заголовками ---------- */
 function initHeadings() {
   const hs = document.querySelectorAll(".section h2, .seo-text h2");
@@ -617,8 +563,6 @@ document.addEventListener("DOMContentLoaded", () => {
   initSplit();
   initTicker();
   initGlow();
-  initCursor();
-  initMagnetic();
   initHeadings();
   const spread = initSpread();
   if (spread) {
