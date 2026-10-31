@@ -7,14 +7,14 @@
 #   python3 tools/voice.py setup VOICE_ID                            → шаблон с этим голосом (один раз)
 #   python3 tools/voice.py NAME [--speed 1.05] [--no-fit]            → scripts/NAME.md → voice/NAME.mp3 (платно)
 #   python3 tools/voice.py fetch NAME ORDER_ID [--no-fit]            → скачать уже готовый заказ (бесплатно, без повторной озвучки)
-# После озвучки длина подгоняется к цели 1:10–1:15 лёгким изменением темпа (не больше ±8 %);
-# исходник остаётся в voice/NAME_raw.mp3. --no-fit — оставить как есть.
+# После озвучки голос всегда ускоряется ×1.17 (правило канала; под длину ролика НЕ подгоняем);
+# исходник остаётся в voice/NAME_raw.mp3. --no-fit — оставить скорость как есть (×1.0).
 import argparse, json, os, pathlib, re, subprocess, sys, time, urllib.error, urllib.request
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 BASE = "https://api.lumean.app/api/public"
 STATE = ROOT / "voice/lumean.json"          # id шаблона и голоса (не секрет)
 MODEL = "eleven_multilingual_v2"
-TARGET = (70.0, 75.0); TAIL = 0.7; MAX_FIT = 0.08
+TEMPO = 1.17; TAIL = 0.7
 FINAL = {"completed", "result_delivered"}; FAILED = {"failed", "cancelled", "compensated"}
 
 
@@ -115,13 +115,10 @@ def finish(name, o, no_fit):
     url = api("POST", "/storage/url", {"path": o["result"]["files"][0], "download": True})["url"]
     raw = ROOT / f"voice/{name}_raw.mp3"; out = ROOT / f"voice/{name}.mp3"
     download(url, raw)
-    dur = ffdur(raw); video = dur + TAIL; tempo = 1.0
-    if not no_fit and not TARGET[0] <= video <= TARGET[1]:
-        want = (sum(TARGET) / 2) - TAIL
-        tempo = min(1 + MAX_FIT, max(1 - MAX_FIT, dur / want))
+    dur = ffdur(raw); tempo = 1.0 if no_fit else TEMPO
     subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", str(raw), "-af", f"atempo={tempo:.4f}", "-b:a", "192k", str(out)], check=True)
     fin = ffdur(out) + TAIL
-    print(f"голос: {dur:.1f} с, темп ×{tempo:.3f} → ролик {fin:.1f} с" + ("" if TARGET[0] <= fin <= TARGET[1] else " ⚠ вне 1:10–1:15 — поправить текст или --speed"))
+    print(f"голос: {dur:.1f} с, темп ×{tempo:.2f} → ролик {fin:.1f} с" + ("" if fin >= 60 else " ⚠ короче 1:00 — дописать текст"))
     print("дальше: python3 tools/align.py", name)
 
 

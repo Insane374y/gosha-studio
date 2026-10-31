@@ -155,3 +155,10 @@ window.VIDEO = { total: TOTAL_T, titleEnd: 1.0, motes: 0, shots: [
     over(g, t) { infoCard(g, W / 2, 470, L("depth"), t, 70.1, { w: 760, h: 330, dur: 3.0, draw: (g2, x, y, w, h, k) => infoCounter(g2, x + w / 2, y + h / 2 - 10, 0, 3000, k, { suffix: " " + L("ft"), size: 120, color: INFO.cold }) });
       bubbleLabel(g, W / 2, 800, L("never"), t, 72.8, { size: 66, bg: "#fffaf0" }); } },
 ] };
+
+// Шоты выше размечены под голос ×1.2; озвучка теперь ×1.17 (правило канала), поэтому всё время растягивается в 1.2 / 1.17 раза.
+// Голос ускорен равномерно (atempo), так что совпадение со словами точное.
+const TS = 1.2 / 1.17;
+window.VIDEO.shots = window.VIDEO.shots.map((s) => { const un = (f) => f && ((...a) => { const i = a.findIndex((x) => typeof x === "number"); a[i] /= TS; return f(...a); });
+  return Object.assign({}, s, { t0: s.t0 * TS, t1: Math.min(s.t1 * TS, TOTAL_T + 0.01), cam: s.cam && s.cam.map(([tt, ...r]) => [tt * TS, ...r]),
+    build: un(s.build), screen: un(s.screen), dark: un(s.dark), post: un(s.post), over: un(s.over), shake: un(s.shake) }); });
