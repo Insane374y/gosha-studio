@@ -56,6 +56,11 @@ class Scene {
   blurFor(z) { return clamp((Math.abs(z - this.focusZ) - 0.7) * 2.2, 0, this.opts.maxBlur ?? 5); }
   // большие плоскости комнаты (рисуются первыми)
   plane(pts, col, line = true) { this.bg.push({ pts, col, line }); }
+  // небо на весь экран: fn(g, cam) рисует его по направлению камеры (горизонт и облака двигаются вместе с поворотом)
+  skybox(fn) { this.skyFn = fn; }
+  // текстурная земля/вода: горизонтальный прямоугольник x0..x1 × z0..z1 на высоте y, painter рисует плитку tile×tile метров;
+  // o.off = [ox, oz] — сдвиг рисунка (движение волн), o.dist — до какого расстояния рисовать текстуру (дальше — просто цвет)
+  ground(x0, x1, z0, z1, y, col, painter, key, o = {}) { this.bg.push({ pts: [[x0, y, z0], [x1, y, z0], [x1, y, z1], [x0, y, z1]], col, line: false, tex: { x0, x1, z0, z1, y, painter, key, tile: o.tile ?? 4, off: o.off ?? [0, 0], dist: o.dist ?? 26 } }); }
   box(p, s, col, o = {}) {
     const c = this.cam.toCam(p);
     this.items.push({ z: c[2] + (o.zb ?? 0), draw: (g) => drawBox(g, this.cam, p, s, col, o) });
@@ -73,23 +78,57 @@ class Scene {
   render(g) {
     // глубина резкости слоями: дальний слой и ближний рисуются в уменьшенный холст и растягиваются (мягкое размытие),
     // резкий слой — в полном разрешении. Так в десятки раз быстрее, чем фильтр blur на каждом предмете.
-    const DS = 0.33;
+    const DS = 0.5;
     const layer = () => { const c = document.createElement("canvas"); c.width = Math.round(W * DS); c.height = Math.round(H * DS); const x = c.getContext("2d"); x.setTransform(DS, 0, 0, DS, 0, 0); return [c, x]; };
     const fz = this.focusZ, items = this.items;
     const shadows = items.filter((i) => i.z > 40), rest = items.filter((i) => i.z <= 40).sort((a, b) => b.z - a.z);
-    const far = rest.filter((i) => !i.noBlur && i.z > fz + 0.75), near = rest.filter((i) => !i.noBlur && i.z < fz - 0.9), mid = rest.filter((i) => !far.includes(i) && !near.includes(i));
+    // персонажи (sharp) никогда не размываются — главный герой всегда в фокусе
+    const far = rest.filter((i) => !i.noBlur && !i.sharp && i.z > fz + 0.75), near = rest.filter((i) => !i.noBlur && !i.sharp && i.z < fz - 0.9), mid = rest.filter((i) => !far.includes(i) && !near.includes(i));
     const [fc, fx] = layer();
+    if (this.skyFn) this.skyFn(g, this.cam);
+    // земля, вода, небо — в полном разрешении (раньше шли в уменьшенный слой и превращались в «кашу»)
     for (const b of this.bg) {
       const s = projPoly(this.cam, b.pts); if (s.length < 3) continue;
-      fx.fillStyle = b.col; pathPoly(fx, s); fx.fill();
-      if (b.line) { fx.strokeStyle = INKC; fx.lineWidth = 3; fx.stroke(); }
+      g.fillStyle = b.col; pathPoly(g, s); g.fill();
+      if (b.tex) drawTexGround(g, this.cam, b.tex);
+      if (b.line) { g.strokeStyle = INKC; g.lineWidth = 3; pathPoly(g, s); g.stroke(); }
     }
-    for (const i of shadows) i.draw(fx);
+    for (const i of shadows) i.draw(g);
     for (const i of far) i.draw(fx);
     g.save(); g.imageSmoothingEnabled = true; g.imageSmoothingQuality = "high"; g.filter = "blur(1px)"; g.drawImage(fc, 0, 0, W, H); g.restore();
     for (const i of mid) i.draw(g);
     if (near.length) { const [nc, nx] = layer(); for (const i of near) i.draw(nx); g.save(); g.imageSmoothingQuality = "high"; g.filter = "blur(1.5px)"; g.drawImage(nc, 0, 0, W, H); g.restore(); }
   }
+}
+// Текстура на горизонтальной плоскости: плитки tile×tile м, каждая — аффинно по двум треугольникам (почти без искажений,
+// потому что плитки маленькие). Плитки дальше dist не рисуем — там видно только основной цвет.
+const texCache = {};
+function texTile(key, painter, px = 512) {
+  let c = texCache[key]; if (c) return c;
+  c = texCache[key] = Object.assign(document.createElement("canvas"), { width: px, height: px }); painter(c.getContext("2d"), px, px); return c;
+}
+function drawTexGround(g, cam, T) {
+  const tile = T.tile, img = texTile(T.key, T.painter), n = img.width;
+  const cx = cam.pos[0], cz = cam.pos[2], ox = ((T.off[0] % tile) + tile) % tile, oz = ((T.off[1] % tile) + tile) % tile;
+  const xa = Math.max(T.x0, cx - T.dist), xb = Math.min(T.x1, cx + T.dist), za = Math.max(T.z0, cz - T.dist * 1.6), zb = Math.min(T.z1, cz + 2);
+  const tri = (p0, p1, p2, s0, s1, s2) => {
+    const mx = (p0[0] + p1[0] + p2[0]) / 3, my = (p0[1] + p1[1] + p2[1]) / 3, e = (p) => [mx + (p[0] - mx) * 1.02, my + (p[1] - my) * 1.02];
+    const [q0, q1, q2] = [e(p0), e(p1), e(p2)];
+    g.save(); g.beginPath(); g.moveTo(q0[0], q0[1]); g.lineTo(q1[0], q1[1]); g.lineTo(q2[0], q2[1]); g.closePath(); g.clip();
+    const [x0, y0] = s0, [x1, y1] = s1, [x2, y2] = s2, den = x0 * (y1 - y2) + x1 * (y2 - y0) + x2 * (y0 - y1);
+    const a = (p0[0] * (y1 - y2) + p1[0] * (y2 - y0) + p2[0] * (y0 - y1)) / den, c = (p0[0] * (x2 - x1) + p1[0] * (x0 - x2) + p2[0] * (x1 - x0)) / den;
+    const ee = (p0[0] * (x1 * y2 - x2 * y1) + p1[0] * (x2 * y0 - x0 * y2) + p2[0] * (x0 * y1 - x1 * y0)) / den;
+    const b = (p0[1] * (y1 - y2) + p1[1] * (y2 - y0) + p2[1] * (y0 - y1)) / den, d = (p0[1] * (x2 - x1) + p1[1] * (x0 - x2) + p2[1] * (x1 - x0)) / den;
+    const f = (p0[1] * (x1 * y2 - x2 * y1) + p1[1] * (x2 * y0 - x0 * y2) + p2[1] * (x0 * y1 - x1 * y0)) / den;
+    g.transform(a, b, c, d, ee, f); g.drawImage(img, 0, 0); g.restore();
+  };
+  g.save(); pathPoly(g, projPoly(cam, [[T.x0, T.y, T.z0], [T.x1, T.y, T.z0], [T.x1, T.y, T.z1], [T.x0, T.y, T.z1]])); g.clip();
+  for (let x = Math.floor((xa - ox) / tile) * tile + ox; x < xb; x += tile) for (let z = Math.floor((za - oz) / tile) * tile + oz; z < zb; z += tile) {
+    const A = cam.P([x, T.y, z]), B = cam.P([x + tile, T.y, z]), C = cam.P([x + tile, T.y, z + tile]), D = cam.P([x, T.y, z + tile]);
+    if (!A || !B || !C || !D) continue;
+    tri(A, B, D, [0, 0], [n, 0], [0, n]); tri(B, C, D, [n, 0], [n, n], [0, n]);
+  }
+  g.restore();
 }
 function drawBox(g, cam, p, s, col, o) {
   const [hx, hy, hz] = [s[0] / 2, s[1] / 2, s[2] / 2];
@@ -209,7 +248,7 @@ function drawActor(scene, t, a) {
   const roll = a.roll ? smoothTrack(t, a.roll)[0] : 0, shake = a.shiver && valAt(t, a.shiver, false) ? Math.sin(t * 60) * 0.01 : 0;
   const bob = valAt(t, a.run, 0) ? Math.abs(Math.sin(t * 13 + a.seed)) * 0.05 * valAt(t, a.run, 0) : 0;   // подпрыгивание на бегу
   const base = [pos[0] + shake, pos[1] + hop * sc0 + lift + bob, pos[2]];
-  const item = { z: scene.cam.toCam([pos[0], 1.0, pos[2]])[2], draw: (g) => {
+  const item = { z: scene.cam.toCam([pos[0], 1.0, pos[2]])[2], sharp: true, draw: (g) => {
     const b = scene.cam.P(base), top = scene.cam.P([base[0], base[1] + PLANE_H * sc0, base[2]]);
     if (!b || !top) return;
     const hpx = b[1] - top[1], wpx = (hpx * PLANE_W) / PLANE_H;
