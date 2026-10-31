@@ -12,7 +12,7 @@
 
   <section class="hero">
     <div class="container">
-      <div>
+      <div class="hero__text" id="hero-text">
         <h1>Роллеты и ворота с установкой под ключ</h1>
         <p>Изготовим по вашим размерам, привезём и установим. Защита от взлома, шума, пыли и солнца.</p>
         <ul class="hero__list">
@@ -24,22 +24,32 @@
           <button class="btn" data-modal="Вызвать замерщика">Вызвать замерщика бесплатно</button>
           <a class="btn btn--outline btn--light" href="catalog.html">Смотреть каталог</a>
         </div>
+        <div class="hero__hint">Покрутите колесико мыши вниз — роллета откроется ↓</div>
       </div>
       <div class="hero__img" id="hero-img"></div>
+    </div>
+  </section>
+
+  <section class="section" style="padding-bottom:0">
+    <div class="container stats" data-stagger>
+      <div class="stat"><div class="stat__num" data-count="0" data-suffix=" ₽">0 ₽</div><div class="stat__label">стоит выезд замерщика</div></div>
+      <div class="stat"><div class="stat__num" data-count="1" data-suffix=" день">1 день</div><div class="stat__label">занимает монтаж</div></div>
+      <div class="stat"><div class="stat__num" data-count="3" data-suffix=" года">3 года</div><div class="stat__label">гарантия на изделие и установку</div></div>
+      <div class="stat"><div class="stat__num" data-count="models" data-suffix=" моделей">9 моделей</div><div class="stat__label">роллет для дверей и окон</div></div>
     </div>
   </section>
 
   <section class="section" id="services">
     <div class="container">
       <h2>Каталог продукции</h2>
-      <div class="cats" id="cats"></div>
+      <div class="cats" id="cats" data-stagger></div>
     </div>
   </section>
 
   <section class="section section--white">
     <div class="container">
       <h2>Почему выбирают нас</h2>
-      <div class="features">
+      <div class="features" data-stagger>
         <div class="feature"><div class="feature__icon">📏</div><h3>Замер бесплатно</h3><p>Приедем в удобное время и подберём решение под ваш проём.</p></div>
         <div class="feature"><div class="feature__icon">🏭</div><h3>Своё производство</h3><p>Делаем роллеты по точным размерам, без переплаты посредникам.</p></div>
         <div class="feature"><div class="feature__icon">🔧</div><h3>Монтаж за 1 день</h3><p>Опытные монтажники, аккуратная работа, уборка после себя.</p></div>
@@ -48,22 +58,24 @@
     </div>
   </section>
 
-  <section class="section" id="steps">
-    <div class="container">
+  <section class="section pin" id="steps">
+    <div class="pin__sticky"><div class="container">
       <h2>Как мы работаем</h2>
-      <div class="steps">
+      <p class="pin__hint">5 шагов от заявки до готовой роллеты</p>
+      <div class="pin__line"><span id="pin-line"></span></div>
+      <div class="pin__track steps" id="pin-track">
         <div class="step"><h3>Заявка</h3><p>Звоните или оставляете заявку на сайте.</p></div>
         <div class="step"><h3>Замер</h3><p>Замерщик приезжает и считает точную цену.</p></div>
         <div class="step"><h3>Договор</h3><p>Фиксируем цену и сроки в договоре.</p></div>
         <div class="step"><h3>Изготовление</h3><p>Делаем изделие на производстве.</p></div>
         <div class="step"><h3>Установка</h3><p>Монтируем и показываем, как пользоваться.</p></div>
       </div>
-    </div>
+    </div></div>
   </section>
 
   <section class="section">
     <div class="container">
-      <div class="cta">
+      <div class="cta" data-reveal>
         <div>
           <h2>Рассчитаем стоимость за 15 минут</h2>
           <p>Оставьте телефон и размеры проёма — менеджер перезвонит и назовёт цену.</p>
@@ -83,6 +95,5 @@
 
   <script src="js/data.js"></script>
   <script src="js/main.js"></script>
-  <script>document.getElementById("hero-img").innerHTML = drawPicture("shutter", "#c9ced6");</script>
 </body>
 </html>

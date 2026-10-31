@@ -302,3 +302,192 @@ document.addEventListener("DOMContentLoaded", () => {
   document.querySelectorAll("[data-address]").forEach(e => { e.textContent = `${COMPANY.city}, ${COMPANY.address}`; });
   document.querySelectorAll("[data-hours]").forEach(e => { e.textContent = COMPANY.hours; });
 });
+
+/* =====================================================================
+   АНИМАЦИИ И МЕХАНИКИ ПРИ ПРОКРУТКЕ
+   ===================================================================== */
+const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+const clamp01 = (v) => Math.max(0, Math.min(1, v));
+
+/* ---------- Роллета в баннере: поднимается при прокрутке ---------- */
+function heroShutterSvg() {
+  let slats = "";
+  for (let y = 50; y < 250; y += 10) {
+    slats += `<rect x="40" y="${y}" width="220" height="10" fill="#d3deeb"/><rect x="40" y="${y + 8.5}" width="220" height="1.5" fill="#8fa6c2"/>`;
+  }
+  return `<svg viewBox="0 0 300 270" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Роллета на окне">
+    <defs>
+      <linearGradient id="hs-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5fb3ff"/><stop offset="1" stop-color="#d9ecff"/></linearGradient>
+      <clipPath id="hs-clip"><rect x="40" y="50" width="220" height="205"/></clipPath>
+    </defs>
+    <rect x="44" y="54" width="212" height="196" fill="#f4f8fc"/>
+    <rect x="54" y="64" width="192" height="176" fill="url(#hs-sky)"/>
+    <circle cx="200" cy="105" r="20" fill="#fff6c8"/><circle cx="200" cy="105" r="30" fill="#fff6c8" opacity=".35"/>
+    <path d="M54 205 Q100 170 150 195 T246 185 V240 H54 Z" fill="#3c7fd0"/>
+    <path d="M54 222 Q120 195 180 215 T246 210 V240 H54 Z" fill="#1f5199"/>
+    <rect x="147" y="64" width="6" height="176" fill="#f4f8fc"/><rect x="54" y="150" width="192" height="6" fill="#f4f8fc"/>
+    <g clip-path="url(#hs-clip)"><g id="hs-slats">${slats}<rect x="40" y="248" width="220" height="8" fill="#6f87a6"/></g></g>
+    <rect x="30" y="50" width="10" height="208" rx="2" fill="#e6edf6"/><rect x="260" y="50" width="10" height="208" rx="2" fill="#e6edf6"/>
+    <rect x="26" y="16" width="248" height="38" rx="7" fill="#eef3f9"/><rect x="26" y="46" width="248" height="8" fill="#000" opacity=".08"/>
+    <circle cx="256" cy="35" r="5" fill="#3b9eff"/>
+  </svg>`;
+}
+
+function initHero() {
+  const box = document.getElementById("hero-img");
+  if (!box) return null;
+  box.innerHTML = heroShutterSvg() + `<div class="hero__label" id="hero-label">Роллета открыта на 0%</div>`;
+  const slats = document.getElementById("hs-slats");
+  const label = document.getElementById("hero-label");
+  const text = document.getElementById("hero-text");
+  const hero = box.closest(".hero");
+  return () => {
+    const p = clamp01(window.scrollY / (hero.offsetHeight * 0.75));
+    slats.setAttribute("transform", `translate(0 ${(-p * 205).toFixed(1)})`);
+    label.textContent = p >= 0.99 ? "Роллета полностью открыта ☀" : `Роллета открыта на ${Math.round(p * 100)}%`;
+    if (!reduceMotion && text) {
+      text.style.transform = `translateY(${(window.scrollY * 0.25).toFixed(1)}px)`;
+      text.style.opacity = (1 - p * 0.6).toFixed(2);
+    }
+  };
+}
+
+/* ---------- «Как мы работаем»: блок замирает, шаги листаются вбок ---------- */
+function initPin() {
+  const sec = document.querySelector(".pin");
+  if (!sec) return null;
+  const track = document.getElementById("pin-track");
+  const line = document.getElementById("pin-line");
+  const steps = [...track.children];
+  const wide = window.matchMedia("(min-width: 901px)");
+  const setMode = () => {
+    sec.classList.toggle("pin--on", wide.matches && !reduceMotion);
+    if (!sec.classList.contains("pin--on")) track.style.transform = "";
+  };
+  wide.addEventListener("change", setMode);
+  setMode();
+
+  return (headerH) => {
+    const r = sec.getBoundingClientRect();
+    let p;
+    if (sec.classList.contains("pin--on")) {
+      const total = sec.offsetHeight - (window.innerHeight - headerH);
+      p = clamp01((headerH - r.top) / total);
+      const maxShift = Math.max(0, track.scrollWidth - track.clientWidth);
+      track.style.transform = `translateX(${(-p * maxShift).toFixed(1)}px)`;
+    } else {
+      p = clamp01((window.innerHeight * 0.85 - r.top) / (r.height + window.innerHeight * 0.2));
+    }
+    line.style.width = (p * 100).toFixed(1) + "%";
+    steps.forEach((s, i) => s.classList.toggle("active", p >= i / (steps.length - 1) - 0.03));
+  };
+}
+
+/* ---------- Блоки плавно выезжают снизу ---------- */
+function initReveal() {
+  const items = [];
+  document.querySelectorAll("[data-reveal]").forEach((el) => items.push([el, 0]));
+  document.querySelectorAll("[data-stagger]").forEach((wrap) => {
+    [...wrap.children].forEach((el, i) => items.push([el, (i % 4) * 0.09]));
+  });
+  if (reduceMotion || !("IntersectionObserver" in window)) return;
+
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach((e) => {
+      if (!e.isIntersecting) return;
+      const el = e.target;
+      io.unobserve(el);
+      el.classList.add("reveal-in");
+      requestAnimationFrame(() => el.classList.remove("reveal-pending"));
+      setTimeout(() => el.classList.remove("reveal-in"), 1400);
+    });
+  }, { threshold: 0.12, rootMargin: "0px 0px -40px 0px" });
+
+  items.forEach(([el, d]) => {
+    // то, что видно сразу при загрузке, не прячем
+    if (el.getBoundingClientRect().top < window.innerHeight * 0.92) return;
+    el.style.setProperty("--d", d + "s");
+    el.classList.add("reveal-pending");
+    io.observe(el);
+  });
+}
+
+/* ---------- Цифры-счётчики ---------- */
+function initCounters() {
+  const els = document.querySelectorAll("[data-count]");
+  if (!els.length) return;
+  const run = (el) => {
+    const raw = el.dataset.count;
+    const to = raw === "models" ? PRODUCTS.length : +raw;
+    const from = to === 0 ? 5000 : 0; // «0 ₽» красиво «сбегает» с 5000 до нуля
+    const suffix = el.dataset.suffix || "";
+    if (reduceMotion) { el.textContent = to.toLocaleString("ru-RU") + suffix; return; }
+    const t0 = performance.now(), dur = 1400;
+    const tick = (t) => {
+      const k = clamp01((t - t0) / dur), e = 1 - Math.pow(1 - k, 3);
+      el.textContent = Math.round(from + (to - from) * e).toLocaleString("ru-RU") + suffix;
+      if (k < 1) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  };
+  const io = new IntersectionObserver((entries) => entries.forEach((e) => {
+    if (e.isIntersecting) { io.unobserve(e.target); run(e.target); }
+  }), { threshold: 0.5 });
+  els.forEach((el) => io.observe(el));
+}
+
+/* ---------- Карточки наклоняются за мышью ---------- */
+function initTilt() {
+  if (reduceMotion || !window.matchMedia("(pointer: fine)").matches) return;
+  const sel = ".card, .cat, .feature, .stat";
+  document.addEventListener("pointermove", (e) => {
+    const el = e.target.closest(sel);
+    document.querySelectorAll(".tilting").forEach((x) => { if (x !== el) resetTilt(x); });
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    const x = (e.clientX - r.left) / r.width - 0.5, y = (e.clientY - r.top) / r.height - 0.5;
+    el.classList.add("tilt", "tilting");
+    el.style.transform = `perspective(900px) rotateX(${(-y * 7).toFixed(2)}deg) rotateY(${(x * 7).toFixed(2)}deg) translateY(-4px)`;
+  });
+  document.addEventListener("pointerleave", () => document.querySelectorAll(".tilting").forEach(resetTilt));
+  function resetTilt(x) { x.classList.remove("tilting"); x.style.transform = ""; }
+}
+
+/* ---------- Запуск: всё, что зависит от прокрутки ---------- */
+document.addEventListener("DOMContentLoaded", () => {
+  const bar = document.createElement("div");
+  bar.className = "progress";
+  document.body.appendChild(bar);
+
+  const up = document.createElement("button");
+  up.className = "to-top";
+  up.setAttribute("aria-label", "Наверх");
+  up.textContent = "↑";
+  up.addEventListener("click", () => window.scrollTo({ top: 0, behavior: reduceMotion ? "auto" : "smooth" }));
+  document.body.appendChild(up);
+
+  const header = document.querySelector(".header");
+  const heroUpdate = initHero();
+  const pinUpdate = initPin();
+  initReveal();
+  initCounters();
+  initTilt();
+
+  let ticking = false;
+  const update = () => {
+    ticking = false;
+    const y = window.scrollY;
+    const max = document.documentElement.scrollHeight - window.innerHeight;
+    bar.style.transform = `scaleX(${max > 0 ? (y / max).toFixed(4) : 0})`;
+    header?.classList.toggle("compact", y > 60);
+    up.classList.toggle("show", y > 600);
+    const headerH = header ? header.offsetHeight : 0;
+    document.documentElement.style.setProperty("--header-h", headerH + "px");
+    heroUpdate?.();
+    pinUpdate?.(headerH);
+  };
+  const onScroll = () => { if (!ticking) { ticking = true; requestAnimationFrame(update); } };
+  window.addEventListener("scroll", onScroll, { passive: true });
+  window.addEventListener("resize", onScroll);
+  update();
+});

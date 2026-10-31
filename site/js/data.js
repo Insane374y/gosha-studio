@@ -21,7 +21,7 @@ const CATEGORIES = [
   { id: "garage", title: "Гаражные роллеты", text: "Компактно, без места под потолком", page: "catalog.html", pic: { type: "shutter", color: "#7b5a3c" } },
   { id: "sectional", title: "Секционные ворота", text: "Для гаражей и промышленных зданий", page: "catalog.html", pic: { type: "sectional", color: "#e9ecef" } },
   { id: "swing", title: "Распашные и откатные ворота", text: "Для частных домов и территорий", page: "catalog.html", pic: { type: "swing", color: "#4a5a6a" } },
-  { id: "automation", title: "Автоматика", text: "Приводы, пульты, шлагбаумы", page: "catalog.html", pic: { type: "motor", color: "#f28c28" } },
+  { id: "automation", title: "Автоматика", text: "Приводы, пульты, шлагбаумы", page: "catalog.html", pic: { type: "motor", color: "#3b9eff" } },
 ];
 
 // Цвета профиля
@@ -77,7 +77,7 @@ function drawPicture(type, color) {
     return svgWrap(`<rect x="14" y="40" width="10" height="140" fill="${frame}"/><rect x="176" y="40" width="10" height="140" fill="${frame}"/>
       <rect x="26" y="60" width="72" height="110" fill="${color}"/><rect x="102" y="60" width="72" height="110" fill="${color}"/>
       ${[0,1,2,3,4,5,6,7].map(i => `<rect x="${30 + i * 8.5}" y="64" width="5" height="102" fill="#fff" opacity=".12"/><rect x="${106 + i * 8.5}" y="64" width="5" height="102" fill="#fff" opacity=".12"/>`).join("")}
-      <circle cx="94" cy="118" r="3" fill="#f28c28"/><circle cx="106" cy="118" r="3" fill="#f28c28"/>`);
+      <circle cx="94" cy="118" r="3" fill="#7cc4ff"/><circle cx="106" cy="118" r="3" fill="#7cc4ff"/>`);
   }
   if (type === "motor") {
     return svgWrap(`<rect x="40" y="60" width="120" height="70" rx="12" fill="#4a5560"/>
