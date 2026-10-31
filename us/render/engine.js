@@ -258,6 +258,18 @@ function drawActor(scene, t, a) {
     if (a.props) a.props(g, b[0], top[1], hpx / PLANE_H, t, "front");
   } };
   scene.items.push(item);
+  // тень на земле: остаётся внизу, даже когда персонаж прыгает (и бледнеет/уменьшается с высотой).
+  // a.ground(x) — высота земли под ногами (склон), иначе 0; a.shadow === false — без тени
+  if (a.shadow !== false) {
+    const gy = a.ground ? a.ground(base[0]) : 0, up = Math.max(0, base[1] - gy), fade = 1 / (1 + up * 2.5), r = 0.36 * sc0;
+    scene.items.push({ z: scene.cam.toCam([pos[0], gy, pos[2]])[2] + 0.05, draw: (g) => {
+      const c = scene.cam.P([base[0] + 0.05, gy + 0.004, pos[2] + 0.04]), e = scene.cam.P([base[0] + 0.05 + r, gy + 0.004, pos[2] + 0.04]), f = scene.cam.P([base[0] + 0.05, gy + 0.004, pos[2] + 0.04 + r * 0.55]);
+      if (!c || !e || !f) return;
+      const rx = Math.abs(e[0] - c[0]) * fade, ry = Math.max(3, Math.abs(f[1] - c[1])) * fade;
+      g.save(); g.translate(c[0], c[1]); g.scale(1, ry / rx);
+      const gr = g.createRadialGradient(0, 0, 0, 0, 0, rx); gr.addColorStop(0, `rgba(30,20,10,${0.42 * fade})`); gr.addColorStop(0.6, `rgba(30,20,10,${0.28 * fade})`); gr.addColorStop(1, "rgba(30,20,10,0)");
+      g.fillStyle = gr; g.beginPath(); g.arc(0, 0, rx, 0, 7); g.fill(); g.restore(); } });
+  }
 }
 
 // ---------------------------------------------------------------- спрайты

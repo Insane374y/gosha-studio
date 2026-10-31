@@ -105,6 +105,20 @@ function motes(g, t, k) {
   g.restore();
 }
 
+// Whip-переход между разными сценами: последние/первые 0.2 с кадр уезжает в сторону с размытием в движении,
+// будто камера быстро разворачивается. Направление чередуется. Шоты с join: true продолжают камеру без перехода.
+const WHIP = document.createElement("canvas"); WHIP.width = W; WHIP.height = H; const WX = WHIP.getContext("2d");
+function whip(g, t, SH) {
+  const D = 0.2; let k = 0, dir = 1;
+  SH.forEach((s, i) => { if (!i || s.join) return; const d = t - s.t0; if (Math.abs(d) < D) { k = d < 0 ? -(1 - Math.abs(d) / D) : 1 - d / D; dir = i % 2 ? 1 : -1; } });
+  if (!k) return;
+  const off = (k < 0 ? -1 : 1) * Math.abs(k) ** 2 * W * 0.55 * dir;
+  WX.clearRect(0, 0, W, H); WX.drawImage(g.canvas, 0, 0);
+  g.save(); g.setTransform(1, 0, 0, 1, 0, 0); g.fillStyle = "#000"; g.fillRect(0, 0, W, H);
+  const n = 7; for (let i = 0; i < n; i++) { g.globalAlpha = 1 / (i * 0.6 + 1); g.drawImage(WHIP, off * (1 + i * 0.06) + (k < 0 ? 1 : -1) * dir * i * Math.abs(k) * 22, 0); }
+  g.restore();
+}
+
 function fitText(g, txt, maxW, size) { g.font = `900 ${size}px ${FONT_TITLE}`; const w = g.measureText(txt).width; return w > maxW ? Math.floor(size * maxW / w) : size; }
 function renderFrame(t) {
   const V = window.VIDEO, SH = V.shots, titleEnd = Math.min(V.titleEnd ?? 1.0, 1.0);
@@ -129,6 +143,7 @@ function renderFrame(t) {
   if (sh.post) sh.post(G, t);
   vignette(G, 0.42);
   if (sh.over) sh.over(G, t);
+  whip(G, t, SH);
   // титр: ≤1 с, поверх действия, без затемнения кадра
   if (t < titleEnd) {
     const out = clamp((t - (titleEnd - 0.2)) / 0.2, 0, 1);
@@ -149,7 +164,7 @@ function renderFrame(t) {
       lines.forEach((ln, i) => { const y = (i - (lines.length - 1) / 2) * 100; G.fillStyle = "rgba(0,0,0,0.55)"; G.fillText(ln, 0, y + 7); G.lineWidth = 18; G.strokeStyle = "#000"; G.strokeText(ln, 0, y); G.fillStyle = "#fff"; G.fillText(ln, 0, y); });
       G.restore(); }
   }
-  const cut = SH.find((s) => s.t0 > 0 && t >= s.t0 && t < s.t0 + 0.08); if (cut) { G.fillStyle = "rgba(255,255,255,0.18)"; G.fillRect(0, 0, W, H); }
+  // (вспышка на склейке убрана: смена ракурса — движением камеры, между мирами — whip-переход ниже)
 }
 window.renderFrame = renderFrame;
 window.ready = Promise.all([document.fonts.load('900 92px "Inter Display"'), document.fonts.load('800 40px "Inter"')]).then(() => true);

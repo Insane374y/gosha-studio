@@ -10,17 +10,17 @@ function texSand(g, w, h) {   // сухой песок: песчинки, вет
   g.lineWidth = 3; g.lineCap = "round";
   for (let i = 0; i < 16; i++) { const x = R() * w, y = R() * h, len = 60 + R() * 90; wrap(w, h, x, y, (X, Y) => { g.strokeStyle = "rgba(196,160,104,0.45)"; g.beginPath(); g.moveTo(X, Y); g.quadraticCurveTo(X + len / 2, Y - 10, X + len, Y); g.stroke(); g.strokeStyle = "rgba(255,244,214,0.6)"; g.beginPath(); g.moveTo(X, Y + 4); g.quadraticCurveTo(X + len / 2, Y - 6, X + len, Y + 4); g.stroke(); }); }
   const cols = ["#d8b67c", "#fff3d6", "#c9a46a", "#e8c891"];
-  for (let i = 0; i < 2600; i++) { g.fillStyle = cols[i % 4]; g.fillRect(R() * w, R() * h, 2 + R() * 2, 2 + R() * 2); }
+  for (let i = 0; i < 500; i++) { g.fillStyle = cols[i % 4]; g.globalAlpha = 0.5; g.fillRect(R() * w, R() * h, 2, 2); } g.globalAlpha = 1;   // песчинок мало и они мягкие — картинка чище
   for (let i = 0; i < 5; i++) { const x = R() * w, y = R() * h, sh = R() > 0.5; wrap(w, h, x, y, (X, Y) => {   // ракушки и камешки
     g.fillStyle = sh ? "#f6c9c0" : "#a99a86"; g.strokeStyle = "rgba(42,29,26,0.55)"; g.lineWidth = 2; g.beginPath();
     if (sh) { g.moveTo(X - 9, Y + 5); g.quadraticCurveTo(X, Y - 12, X + 9, Y + 5); g.closePath(); } else g.ellipse(X, Y, 7, 5, R(), 0, 7); g.fill(); g.stroke(); }); }
 }
-function texWet(g, w, h) {   // мокрое дно: темнее, блики, лужицы, следы ряби
-  const R = rng(11); g.fillStyle = "#b08657"; g.fillRect(0, 0, w, h);
-  for (let i = 0; i < 20; i++) { const x = R() * w, y = R() * h, r = 40 + R() * 70; wrap(w, h, x, y, (X, Y) => { const gr = g.createRadialGradient(X, Y, 0, X, Y, r); gr.addColorStop(0, "rgba(120,86,52,0.35)"); gr.addColorStop(1, "rgba(0,0,0,0)"); g.fillStyle = gr; g.fillRect(X - r, Y - r, 2 * r, 2 * r); }); }
-  g.lineWidth = 4; for (let y = 10; y < h; y += 26) { g.strokeStyle = y % 52 ? "rgba(92,64,38,0.35)" : "rgba(214,184,140,0.35)"; g.beginPath(); for (let x = 0; x <= w; x += 16) g.lineTo(x, y + Math.sin((x / w) * Math.PI * 4 + y) * 5); g.stroke(); }
-  for (let i = 0; i < 4; i++) { const x = R() * w, y = R() * h, rx = 25 + R() * 35; wrap(w, h, x, y, (X, Y) => { g.fillStyle = "rgba(120,180,215,0.75)"; g.beginPath(); g.ellipse(X, Y, rx, rx * 0.45, 0, 0, 7); g.fill(); g.fillStyle = "rgba(255,255,255,0.6)"; g.beginPath(); g.ellipse(X - rx * 0.3, Y - 3, rx * 0.35, 3, 0, 0, 7); g.fill(); }); }
-  for (let i = 0; i < 1400; i++) { g.fillStyle = i % 3 ? "#9a7348" : "#c9a271"; g.fillRect(R() * w, R() * h, 2, 2); }
+function texWet(g, w, h) {   // мокрое дно: гладкое, мягкие тёмные пятна, спокойная рябь, лужицы с бликом — без мелких песчинок
+  const R = rng(11); g.fillStyle = "#b28a5c"; g.fillRect(0, 0, w, h);
+  for (let i = 0; i < 12; i++) { const x = R() * w, y = R() * h, r = 60 + R() * 90; wrap(w, h, x, y, (X, Y) => { const gr = g.createRadialGradient(X, Y, 0, X, Y, r); gr.addColorStop(0, "rgba(130,94,58,0.28)"); gr.addColorStop(1, "rgba(0,0,0,0)"); g.fillStyle = gr; g.fillRect(X - r, Y - r, 2 * r, 2 * r); }); }
+  g.lineWidth = 5; g.lineCap = "round";
+  for (let y = 18; y < h; y += 46) { g.strokeStyle = "rgba(140,102,64,0.32)"; g.beginPath(); for (let x = 0; x <= w; x += 16) g.lineTo(x, y + Math.sin((x / w) * Math.PI * 4 + y * 0.1) * 6); g.stroke(); }
+  for (let i = 0; i < 3; i++) { const x = R() * w, y = R() * h, rx = 34 + R() * 30; wrap(w, h, x, y, (X, Y) => { g.fillStyle = "rgba(140,195,225,0.8)"; g.beginPath(); g.ellipse(X, Y, rx, rx * 0.42, 0, 0, 7); g.fill(); g.fillStyle = "rgba(255,255,255,0.65)"; g.beginPath(); g.ellipse(X - rx * 0.3, Y - 3, rx * 0.35, 3, 0, 0, 7); g.fill(); }); }
 }
 function texSea(g, w, h) {   // вода: полосы волн светлее/темнее, блики
   const R = rng(5); g.fillStyle = "#2b88d0"; g.fillRect(0, 0, w, h);
