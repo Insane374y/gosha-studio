@@ -60,7 +60,7 @@ function beachSky(t, o = {}) {
       g.fillStyle = "#ffffff"; for (const [dx, dy, r] of puffs) { g.beginPath(); g.arc(cx + dx * s, cy + dy * s, r * s * 0.94, 0, 7); g.fill(); }
       g.fillStyle = "#c6def3"; g.fillRect(cx - 1.55 * s, cy + 0.36 * s, 3.2 * s, 0.24 * s); }
     // горы на горизонте: два слоя в дымке
-    for (const [col, k] of [["#87adcf", 1], ["#a8c6e0", 0.45]]) { g.fillStyle = col; g.beginPath(); g.moveTo(-10, hy + 2);
+    if (!o.noHills) for (const [col, k] of [["#87adcf", 1], ["#a8c6e0", 0.45]]) { g.fillStyle = col; g.beginPath(); g.moveTo(-10, hy + 2);
       for (let i = 0; i < SKY_HILLS.length; i++) { const [a, e] = SKY_HILLS[i]; g.lineTo(X(a + (k < 1 ? 0.3 : 0)), Y(e * k)); } g.lineTo(W + 10, hy + 2); g.closePath(); g.fill(); }
     if (o.line) { g.fillStyle = `rgba(255,255,255,${0.95 * o.line})`; g.fillRect(0, hy - 0.006 * F, W, 0.008 * F); emitGlow(W / 2, hy, W * 0.4, "#ffffff", 0.25 * o.line); }
   };
