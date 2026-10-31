@@ -236,7 +236,7 @@ function drawActor(scene, t, a) {
     bendF: valAt(tt, a.bendF, 0.12), bendB: valAt(tt, a.bendB, -0.12),
     lean: a.lean ? smoothTrack(tt, a.lean)[0] : 0, mouth: valAt(tt, a.mouth, undefined), flyEyes: a.flyEyes ? smoothTrack(tt, a.flyEyes)[0] : 0,
     stride: valAt(tt, a.run, 0), phase: tt * 13 + a.seed,
-    bigEyes: valAt(tt, a.bigEyes, false), eyeDirs: a.eyeL ? [smoothTrack(tt, a.eyeL), smoothTrack(tt, a.eyeR)] : null, tongue: a.tongue ? smoothTrack(tt, a.tongue)[0] : 0,
+    noFloor: a.shadow === false, bigEyes: valAt(tt, a.bigEyes, false), eyeDirs: a.eyeL ? [smoothTrack(tt, a.eyeL), smoothTrack(tt, a.eyeR)] : null, tongue: a.tongue ? smoothTrack(tt, a.tongue)[0] : 0,
   };
   if (a.blinkHold && valAt(tt, a.blinkHold, false)) pose.blink = true;
   const key = a.id ?? "fobbin";
@@ -252,10 +252,14 @@ function drawActor(scene, t, a) {
     const b = scene.cam.P(base), top = scene.cam.P([base[0], base[1] + PLANE_H * sc0, base[2]]);
     if (!b || !top) return;
     const hpx = b[1] - top[1], wpx = (hpx * PLANE_W) / PLANE_H;
-    if (a.props) a.props(g, b[0], top[1], hpx / PLANE_H, t, "back");
-    if (roll) { g.save(); g.translate(b[0], b[1] - hpx * 0.4); g.rotate(roll); g.drawImage(cv, -wpx / 2, -hpx * 0.6, wpx, hpx); g.restore(); }
-    else { g.drawImage(cv, b[0] - wpx / 2, top[1], wpx, hpx); if (a.rim !== false) ACTORS.push({ cv, x: b[0] - wpx / 2, y: top[1], w: wpx, h: hpx }); }
-    if (a.props) a.props(g, b[0], top[1], hpx / PLANE_H, t, "front");
+    // повёрнутый персонаж (лежит, плывёт): реквизит (маска, ласты) поворачивается вместе с ним
+    if (roll) { g.save(); g.translate(b[0], b[1] - hpx * 0.4); g.rotate(roll);
+      if (a.props) a.props(g, 0, -hpx * 0.6, hpx / PLANE_H, t, "back");
+      g.drawImage(cv, -wpx / 2, -hpx * 0.6, wpx, hpx);
+      if (a.props) a.props(g, 0, -hpx * 0.6, hpx / PLANE_H, t, "front"); g.restore(); }
+    else { if (a.props) a.props(g, b[0], top[1], hpx / PLANE_H, t, "back");
+      g.drawImage(cv, b[0] - wpx / 2, top[1], wpx, hpx); if (a.rim !== false) ACTORS.push({ cv, x: b[0] - wpx / 2, y: top[1], w: wpx, h: hpx });
+      if (a.props) a.props(g, b[0], top[1], hpx / PLANE_H, t, "front"); }
   } };
   scene.items.push(item);
   // тень на земле: остаётся внизу, даже когда персонаж прыгает (и бледнеет/уменьшается с высотой).

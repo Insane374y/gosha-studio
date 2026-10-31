@@ -45,12 +45,9 @@ function diveSection(g, t) {
       g.textAlign = "left"; g.lineWidth = 8; g.strokeStyle = "#000"; g.strokeText(`${ft} ${L("ft")}`, 86, y - 26); g.fillStyle = "#fff"; g.fillText(`${ft} ${L("ft")}`, 86, y - 26);
       g.textAlign = "right"; g.strokeText(`${ft / 33 + 1} ATM`, W - 30, y - 26); g.fillStyle = "#9fe3ff"; g.fillText(`${ft / 33 + 1} ATM`, W - 30, y - 26); } }
   // кит головой вниз, в нём «рентгеном» — Fobbin
-  const wx = 560, wy = cy + 120 + Math.sin(t * 1.2) * 6, k = 46, rot = t < 26.2 ? 0 : -0.55 * ramp(t, 26.2, 27.0);
+  const wx = 600, wy = cy + 140 + Math.sin(t * 1.2) * 6, k = 62, rot = t < 26.2 ? 0 : -0.55 * ramp(t, 26.2, 27.0);
   for (let i = 0; i < 6; i++) { const y = wy - 200 - ((t * 120 + i * 90) % 520); g.strokeStyle = "rgba(255,255,255,0.6)"; g.lineWidth = 3; g.beginPath(); g.arc(wx + 140 + Math.sin(t * 3 + i) * 12, y, 6 + (i % 3) * 3, 0, 7); g.stroke(); }
-  drawWhale(g, wx, wy, k, t, { rot, flip: false });
-  g.save(); g.translate(wx, wy); g.rotate(rot); const bx = 0.2 * k, by = 0.1 * k;
-  g.fillStyle = "rgba(255,240,200,0.28)"; g.strokeStyle = "rgba(255,255,255,0.9)"; g.lineWidth = 4; g.setLineDash([10, 8]); g.beginPath(); g.arc(bx, by, 62, 0, 7); g.fill(); g.stroke(); g.setLineDash([]);
-  g.rotate(-rot); fobbinSprite(g, bx * Math.cos(rot) - by * Math.sin(rot), bx * Math.sin(rot) + by * Math.cos(rot) + 46, 100, { expr: t > 34 ? "shock" : "holdlaugh" }); g.restore();
+  drawWhale(g, wx, wy, k, t, { rot, xray: 1, fob: 1, fobExpr: t > 34 ? "shock" : "holdlaugh" });   // кит «на рентгене»: скелет, органы и Fobbin в желудке
   // темнеет с глубиной
   if (d01 > 0) { g.fillStyle = `rgba(2,6,16,${d01 * 0.35})`; g.fillRect(0, 0, W, H); }
 }
@@ -71,6 +68,8 @@ function oxygenMeter(g, x, y, w, h, k, t) {
 }
 
 // ---------------------------------------------------------------- шоты
+const GEAR = divingGear(3);                                     // маска с трубкой и ласты (стоит — ласты на ногах)
+const SWIM = (run) => divingGear(3, run);                     // плывёт: ласты работают вместе с ногами
 const FOB_Y = (t) => smoothTrack(t, [[6.6, -1.2], [10.8, -4.0]])[0];   // глубина Fobbin в шоте 2
 window.VIDEO = { total: TOTAL_T, titleEnd: 1.0, motes: 0, shots: [
   // 0. Крючок: Fobbin держит вдох, снизу из темноты распахивается челюсть кашалота — глоть
@@ -79,7 +78,7 @@ window.VIDEO = { total: TOTAL_T, titleEnd: 1.0, motes: 0, shots: [
     build(sc, t) { underwater(sc, t, { depth: 0.15, bubbles: t < 1.45 ? [[0.12, -1.6, -5]] : [[0.4, -2.6, -6.2]] });
       const yc = t < 1.45 ? seq(t, 0, 1.45, -15, -7.3) : seq(t, 1.45, 4.15, -7.3, -5.8), jaw = t < 0.45 ? 0 : t < 0.9 ? ramp(t, 0.45, 0.9) : t < 1.35 ? 1 : 1 - ramp(t, 1.35, 1.47);
       sc.sprite([0.5, yc, -6.6], 0.6, (g, X, Y, k) => drawWhale(g, X, Y, k, t, { rot: Math.PI / 2 - (t > 1.45 ? 0.35 * ramp(t, 1.45, 4) : 0), jaw }));
-      if (t < 1.47) drawActor(sc, t, fobbin({ pos: [0, -2.7, -5], lift: [[0, 0], [1.4, 0.15]], shadow: false, expr: [[0, "holdlaugh"], [0.95, "shock"]], bigEyes: [[0.95, true]] })); },
+      if (t < 1.47) drawActor(sc, t, fobbin({ pos: [0, -2.7, -5], lift: [[0, 0], [1.4, 0.15]], roll: [[0, -1.45], [0.95, -1.2]], run: [[0, 0.7], [0.95, 0.25]], shadow: false, expr: [[0, "holdlaugh"], [0.95, "shock"]], bigEyes: [[0.95, true]], props: SWIM([[0, 0.7], [0.95, 0.25]]) })); },
     over(g, t) { bubbleLabel(g, W / 2, 330, L("noRescue"), t, 3.2, { size: 80, bg: "#e8453c", fg: "#fff" }); } },
   // 1. Мексиканский залив: лодка, Fobbin делает вдох и прыгает
   { t0: 4.15, t1: 6.6, cam: shotCam([[4.15, [4.2, 2.0, 1.0], [0.3, 1.1, -5], 50], [5.6, [3.0, 1.3, -1.4], [0.9, 0.9, -5], 48]], 6.6), focus: [0, 1, -5],
@@ -89,23 +88,24 @@ window.VIDEO = { total: TOTAL_T, titleEnd: 1.0, motes: 0, shots: [
       for (let i = 0; i < 4; i++) { const x = ((t * (1.2 + i * 0.3) + i * 9) % 40) - 20; sc.sprite([x, 8 + (i % 2), -22 - i * 3], -1, (g, X, Y, k) => drawGull(g, X, Y, k, t + i)); }
       if (t > 6.25) sc.sprite([1.9, 0.02, -5], -0.2, (g, X, Y, k) => { const p = ramp(t, 6.25, 6.6); g.fillStyle = `rgba(255,255,255,${1 - p})`; for (let i = 0; i < 9; i++) { const a = -Math.PI * (0.1 + 0.8 * i / 8); g.beginPath(); g.arc(X + Math.cos(a) * (0.3 + p) * k, Y + Math.sin(a) * (0.5 + p * 0.6) * k, 0.08 * k, 0, 7); g.fill(); } });
       if (t < 6.3) drawActor(sc, t, fobbin({ walk: [[4.15, 0, -5], [5.85, 0, -5], [6.3, 1.9, -5]], lift: [[4.15, 0.62, 0], [5.85, 0.62, 0], [6.05, 1.3, 0], [6.3, -0.3, 0]],
-        ground: (x) => (x < 1.7 ? 0.62 : 0), expr: [[4.15, "grin"], [5.3, "holdlaugh"]] })); },
+        ground: (x) => (x < 1.7 ? 0.62 : 0), roll: [[5.85, 0], [6.1, 1.2], [6.3, 2.4]], expr: [[4.15, "grin"], [5.3, "holdlaugh"]], props: GEAR })); },
     over(g, t) { bubbleLabel(g, W / 2, 330, L("gulf"), t, 4.3, { size: 66 }); } },
   // 2. Под водой: один вдох; снизу из темноты — пасть кашалота
-  { t0: 6.6, t1: 11.45, cam: [...track3(6.6, 9.1, (tt) => [0, FOB_Y(tt) + 1.2, -5], [1.3, 0.25, 2.6], [0, -0.05, 0], 48), [9.6, [2.8, -1.6, -0.6], [0.2, -4.6, -6.5], 58], [11.45, [2.7, -1.7, -0.9], [0.2, -4.7, -6.5], 58]], focus: [0, -3, -5],
+  { t0: 6.6, t1: 11.45, cam: [...track3(6.6, 9.1, (tt) => [0, FOB_Y(tt) + 0.85, -5], [1.6, 0.3, 3.9], [0, -0.05, 0], 48), [9.6, [2.8, -1.6, -0.6], [0.2, -4.6, -6.5], 58], [11.45, [2.7, -1.7, -0.9], [0.2, -4.7, -6.5], 58]], focus: [0, -3, -5],
     shake: (t) => (t > 10.8 && t < 11.2 ? 0.03 : 0), dark: (t) => (t > 10.85 ? ramp(t, 10.85, 11.1) * 0.95 : 0),
     build(sc, t) { underwater(sc, t, { depth: 0.1 + ramp(t, 6.6, 11) * 0.15, bubbles: t < 10.8 ? [[0.12, -1.5 - seq(t, 6.6, 11, 0, 2.8), -5]] : [] });
       const yc = seq(t, 9.1, 10.85, -21, -9.6), jaw = t < 9.7 ? 0 : t < 10.2 ? ramp(t, 9.7, 10.2) : t < 10.72 ? 1 : 1 - ramp(t, 10.72, 10.84);
       if (t > 9.1) sc.sprite([0.4, yc, -6.6], 0.6, (g, X, Y, k) => drawWhale(g, X, Y, k, t, { rot: Math.PI / 2, jaw, seed: 2 }));
-      if (t < 10.84) drawActor(sc, t, fobbin({ pos: [0, 0, -5], lift: [[6.6, -1.2], [10.8, -4.0]], shadow: false, expr: [[6.6, "holdlaugh"], [10.2, "shock"]], bigEyes: [[10.2, true]] })); },
+      if (t < 10.84) drawActor(sc, t, fobbin({ pos: [0, 0, -5], lift: [[6.6, -1.2], [10.8, -4.0]], roll: [[6.6, 2.5], [10.2, 2.3]], run: [[6.6, 0.75], [10.2, 0.3]], shadow: false, expr: [[6.6, "holdlaugh"], [10.2, "shock"]], bigEyes: [[10.2, true]], props: SWIM([[6.6, 0.75], [10.2, 0.3]]) })); },
     over(g, t) { if (t < 9.0) bubbleLabel(g, W / 2, 330, L("breath"), t, 7.4, { size: 64, bg: "#9fe3ff" }); } },
   // 3. Только кашалот может: глотает гигантских кальмаров целиком + карточка «может ли он тебя проглотить»
-  { t0: 11.45, t1: 17.0, cam: shotCam([[11.45, [1, -28.6, 9], [0, -30, -14], 56], [13.1, [-3.6, -29.6, -4.5], [-5.6, -30.4, -14], 50], [14.8, [-2.4, -29.9, -5.0], [-3.4, -30.6, -13], 50]], 17.0), focus: [-3, -30, -14],
+  { t0: 11.45, t1: 17.0, cam: shotCam([[11.45, [1, -28.6, 9], [0, -30, -14], 56], [13.1, [-3.6, -29.6, -4.5], [-5.6, -30.4, -14], 50], [14.8, [-0.2, -29.9, 4.0], [-0.2, -30.15, -14], 56]], 17.0), focus: [-3, -30, -14],
     build(sc, t) { underwater(sc, t, { depth: 0.45, surface: false, fish: [[-9, -27, -18, 6, "#7fd0f0"]] });
       const wx = seq(t, 11.45, 17, 3.0, 1.6), jaw = t < 13.0 ? 0 : t < 13.5 ? ramp(t, 13.0, 13.5) : t < 14.0 ? 1 : 1 - ramp(t, 14.0, 14.3);
-      sc.sprite([wx, -30, -14], 0.6, (g, X, Y, k) => drawWhale(g, X, Y, k, t, { jaw, seed: 1 }));
+      sc.sprite([wx, -30, -14], 0.6, (g, X, Y, k) => drawWhale(g, X, Y, k, t, { jaw, seed: 1, xray: ramp(t, 14.8, 15.3), fob: t > 15.0 ? ease(ramp(t, 15.0, 16.9)) : null, fobExpr: "shock" }));
       if (t < 14.05) { const sx = wx - 8.6 + ramp(t, 13.3, 14.05) * 3.2; sc.sprite([sx, -30.2 + ramp(t, 13.3, 14.05) * -0.3, -13.9], 0.5, (g, X, Y, k) => drawSquid(g, X, Y, k * 0.9, t, { rot: Math.PI })); }
-      if (t > 14.9) drawActor(sc, t, fobbin({ pos: [wx - 4.3, -31.2, -12.4], scale: [[14.9, 0.01], [15.2, 1]], shadow: false, expr: [[14.9, "realize"]], bigEyes: [[14.9, true]] })); },
+      // с 14.8 с кит «на рентгене» (o.xray), Fobbin проскальзывает по глотке в желудок (o.fob)
+    },
     over(g, t) { infoCard(g, W / 2, 560, L("swallow"), t, 11.6, { w: 940, h: 560, until: 14.7, note: L("throat"),
         draw: (g2, x, y, w, h, k, tt) => chartBars(g2, x, y, w, h, [[L("humpback"), 30, INFO.muted, L("no")], [L("blue"), 22, INFO.muted, L("no")], [L("sperm"), 100, INFO.green, L("yes")]], k, { at: [11.9, 12.2, 12.5], t: tt, max: 100 }) });
       bubbleLabel(g, W / 2, 330, L("fits"), t, 15.2, { size: 62, bg: "#f5c518" }); } },
@@ -113,7 +113,7 @@ window.VIDEO = { total: TOTAL_T, titleEnd: 1.0, motes: 0, shots: [
   { t0: 17.0, t1: 25.4, cam: shotCam([[17.0, [0.55, 1.25, 1.0], [0, 1.0, -2], 44], [19.8, [1.5, 1.9, 2.6], [0, 0.8, -2.5], 56], [23.0, [0.35, 1.3, 0.1], [0, 1.15, -2], 40]], 25.4), focus: [0, 1, -2],
     shake: (t) => (t > 19.9 && t < 21.4 ? 0.012 : 0), dark: (t) => (t < 19.8 ? 0.8 - ramp(t, 18.9, 19.8) * 0.6 : 0.2), post: insideGrade(0.25),
     build(sc, t) { whaleInside(sc, t, { squeeze: t < 19.8 ? 0.1 : 0.1 + ramp(t, 19.8, 21.0) * 0.6 + Math.sin(t * 3) * 0.04 });
-      drawActor(sc, t, fobbin({ pos: [0, 0, -2], expr: [[17.0, "shock"], [19.8, "holdlaugh"]], bigEyes: [[17.0, true], [19.8, false]], shiver: [[19.8, true], [21.6, false]] })); },
+      drawActor(sc, t, fobbin({ pos: [0, 0, -2], props: GEAR, expr: [[17.0, "shock"], [19.8, "holdlaugh"]], bigEyes: [[17.0, true], [19.8, false]], shiver: [[19.8, true], [21.6, false]] })); },
     over: withTimer((g, t) => { bubbleLabel(g, W / 2, 360, L("noAir"), t, 21.9, { size: 64, bg: "#fffaf0" }); bubbleLabel(g, W / 2, 490, L("noLight"), t, 23.0, { size: 56, bg: "#20180f", fg: "#fff" }); }) },
   // 5. Кит ныряет: разрез с линейкой глубины + график «воздух в лёгких»
   { t0: 25.4, t1: 34.9, screen: diveSection,
@@ -123,14 +123,14 @@ window.VIDEO = { total: TOTAL_T, titleEnd: 1.0, motes: 0, shots: [
   { t0: 34.9, t1: 44.0, cam: shotCam([[34.9, [0.3, 1.3, -0.2], [0, 1.15, -2], 40], [36.2, [1.7, 1.15, 0.4], [0, 1.0, -2.2], 50], [40.1, [0.5, 0.45, 0.6], [0, 1.25, -2], 48]], 44.0), focus: [0, 1, -2],
     shake: (t) => (t < 35.9 || (t > 41.9 && t < 43.0) ? 0.012 : 0), dark: () => 0.2, post: insideGrade(0.25),
     build(sc, t) { whaleInside(sc, t, { squeeze: 0.45 + Math.sin(t * 2.4) * 0.08 });
-      drawActor(sc, t, fobbin({ pos: [0, 0, -2], expr: [[34.9, "shock"], [36.2, "holdlaugh"], [39.0, "nervous"], [41.9, "shock"]], bigEyes: [[34.9, true], [36.2, false], [41.9, true]], shiver: [[39.0, true]] }));
+      drawActor(sc, t, fobbin({ pos: [0, 0, -2], props: GEAR, expr: [[34.9, "shock"], [36.2, "holdlaugh"], [39.0, "nervous"], [41.9, "shock"]], bigEyes: [[34.9, true], [36.2, false], [41.9, true]], shiver: [[39.0, true]] }));
       if (t < 36.3) for (const s of [-1, 1]) sc.overlay([s * 0.3, 1.25, -2], (g, X, Y) => drawRings(g, X, Y, 600, t, { dir: s < 0 ? Math.PI : 0, col: "rgba(255,240,180,0.95)", r1: 0.3 })); },
     over: withTimer((g, t) => { if (t < 40.6) bubbleLabel(g, W / 2, 360, L("co2"), t, 37.4, { size: 62, bg: "#f5c518" }); bubbleLabel(g, W / 2, 380, L("breathe"), t, 41.9, { size: 110, bg: "#e8453c", fg: "#fff" }); }) },
   // 7. Желудок: съезжает в первую камеру, стенки сжимаются как кулак; дальше — кислота. «Acid is slow. Air is fast.»
   { t0: 44.0, t1: 53.3, cam: shotCam([[44.0, [1.2, 1.7, 1.2], [0, 0.8, -4], 52], [46.5, [0.75, 1.3, -3.7], [0, 1.0, -6.6], 46], [48.2, [0.7, 2.5, -4.6], [0, 0.0, -11], 50], [51.0, [1.9, 1.5, -3.9], [-0.2, 0.5, -8.5], 52]], 53.3), focus: [0, 0.8, -7],
     shake: (t) => (t > 46.5 && t < 47.8 ? 0.016 : 0), dark: () => 0.18, post: insideGrade(0.22),
     build(sc, t) { whaleInside(sc, t, { squeeze: t < 46.5 ? 0.3 : t < 47.9 ? 0.3 + Math.sin(ramp(t, 46.5, 47.9) * Math.PI) * 0.6 : 0.3, acid: true, acidZ: -11 });
-      drawActor(sc, t, fobbin({ walk: [[44.0, 0, -1.5], [45.8, 0, -6.6]], roll: [[44.0, 0], [44.4, -0.35], [45.6, -0.35], [46.0, 0]], lift: [[44, 0, 0], [44.4, 0.08, 0], [45.6, 0.08, 0], [46, 0, 0]],
+      drawActor(sc, t, fobbin({ props: GEAR, walk: [[44.0, 0, -1.5], [45.8, 0, -6.6]], roll: [[44.0, 0], [44.4, -0.35], [45.6, -0.35], [46.0, 0]], lift: [[44, 0, 0], [44.4, 0.08, 0], [45.6, 0.08, 0], [46, 0, 0]],
         expr: [[44.0, "shock"], [46.5, "holdlaugh"], [48.4, "realize"], [51.0, "nervous"]], look: [[48.4, -0.6]], shiver: [[46.5, true], [47.9, false]] }));
       for (let i = 0; i < 5; i++) { const y = ((t * 0.5 + i * 0.3) % 1.2); sc.sprite([-0.8 + i * 0.4, 0.03 + y, -11 + Math.sin(i) * 0.6], -0.1, (g, X, Y, k) => { g.strokeStyle = `rgba(210,255,140,${1 - y / 1.2})`; g.lineWidth = 3; g.beginPath(); g.arc(X, Y, 0.05 * k, 0, 7); g.stroke(); }); } },
     over: withTimer((g, t) => { bubbleLabel(g, W / 2, 360, L("acidSlow"), t, 51.0, { size: 70, bg: "#b6e36a" }); bubbleLabel(g, W / 2, 500, L("airFast"), t, 52.6, { size: 78, bg: "#e8453c", fg: "#fff", rot: 0.03 }); }) },
@@ -140,7 +140,7 @@ window.VIDEO = { total: TOTAL_T, titleEnd: 1.0, motes: 0, shots: [
       const r = seq(t, 54.2, 57.6, H * 0.75, H * 0.12); const gr = g.createRadialGradient(W / 2, H * 0.47, r * 0.55, W / 2, H * 0.47, r); gr.addColorStop(0, "rgba(0,0,0,0)"); gr.addColorStop(1, "rgba(0,0,0,0.96)");
       g.fillStyle = gr; g.fillRect(0, 0, W, H); },
     build(sc, t) { whaleInside(sc, t, { squeeze: 0.35 + Math.sin(t * 2) * 0.05, acid: true, acidZ: -11 });
-      drawActor(sc, t, fobbin({ pos: [0, 0, -6.6], roll: [[57.1, 0], [57.8, -1.45]], lift: [[57.1, 0], [57.8, -0.2]], expr: [[53.3, "nervous"], [54.2, "blank"]], blinkHold: [[57.1, true]] })); },
+      drawActor(sc, t, fobbin({ pos: [0, 0, -6.6], props: GEAR, roll: [[57.1, 0], [57.8, -1.45]], lift: [[57.1, 0], [57.8, -0.2]], expr: [[53.3, "nervous"], [54.2, "blank"]], blinkHold: [[57.1, true]] })); },
     over: withTimer((g, t) => infoCard(g, W / 2, 470, L("oxygen"), t, 53.4, { w: 940, h: 420, until: 61.6, note: L("avg"), draw: (g2, x, y, w, h, k, tt) => oxygenMeter(g2, x, y, w, h, k, tt) })) },
   // 9. Честный ответ: снаружи кит спокойно плывёт дальше
   { t0: 61.8, t1: 70.0, cam: shotCam([[61.8, [2, -38.6, 10], [0, -40, -14], 58], [63.5, [-3.6, -39.2, -3.6], [-3.4, -40, -14], 50], [66.9, [4.2, -39.4, -2.2], [1.5, -40, -14], 52]], 70.0), focus: [0, -40, -14],

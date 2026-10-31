@@ -45,7 +45,7 @@ function underwater(sc, t, o = {}) {
 
 // ------------------------------------------------ кашалот (вид сбоку). k — пикселей на метр, длина ~13 м.
 // o.jaw 0..1 — насколько открыта нижняя челюсть; o.rot — наклон (голова вниз при нырянии > 0); o.flip — смотрит вправо
-function drawWhale(g, x, y, k, t, o = {}) {
+function drawWhaleSkin(g, x, y, k, t, o = {}) {
   const s = k; g.save(); g.translate(x, y); if (o.flip) g.scale(-1, 1); g.rotate(o.rot ?? 0);
   g.lineJoin = "round"; g.lineCap = "round";
   const fl = Math.sin(t * 2.2 + (o.seed ?? 0)) * 0.5;   // взмах хвоста
@@ -132,7 +132,7 @@ function whaleInside(sc, t, o = {}) {
   // стенки по бокам — ряды складок, сжимаются; ближе к зрителю шире
   const gap = 1.35 - sq * 0.55;
   for (let i = 0; i < 9; i++) { const z = 2 - i * 2.2, wob = Math.sin(t * 2 + i) * 0.04;
-    if (sc.cam.toCam([0, 0, z])[2] < 1.6) continue;   // складки вплотную к камере закрыли бы весь кадр
+    if (sc.cam.toCam([0, 0, z])[2] < 4.0) continue;   // складки вплотную к камере закрыли бы весь кадр
     for (const side of [-1, 1]) sc.sprite([side * (gap + wob + i * 0.05), 0, z], 0.3, (g, X, Y, k) => drawFold(g, X, Y, k, -side, sq)); }
   // капли слизи сверху
   for (let i = 0; i < 4; i++) { const x = -0.9 + i * 0.6, z = -1 - i * 1.7, y = 2.6 - ((t * 0.6 + i * 0.4) % 2.6);
@@ -140,3 +140,72 @@ function whaleInside(sc, t, o = {}) {
 }
 // темнота внутри кита: тонировка кадра в тёмно-бордовый (поверх сцены, под надписями)
 const insideGrade = (k = 0.45) => (g) => { g.save(); g.globalCompositeOperation = "multiply"; g.fillStyle = `rgba(120,40,50,${k})`; g.fillRect(0, 0, W, H); g.restore(); };
+
+// кит целиком: o.xray 0..1 — переход к «рентгену» (видны скелет, органы и то, что внутри)
+function drawWhale(g, x, y, k, t, o = {}) {
+  const xr = o.xray ?? 0;
+  if (xr < 1) { g.save(); g.globalAlpha = 1 - xr; drawWhaleSkin(g, x, y, k, t, o); g.restore(); }
+  if (xr > 0) { g.save(); g.globalAlpha = xr; drawWhaleXray(g, x, y, k, t, o); g.restore(); }
+}
+// путь проглоченного по пасти → глотке → пищеводу → первой камере желудка (координаты кита, м)
+const SWALLOW_PATH = [[-5.2, 1.0], [-3.6, 1.0], [-2.6, 0.98], [-1.4, 0.92], [-0.3, 0.72], [0.45, 0.55]];
+function swallowAt(u) { const n = SWALLOW_PATH.length - 1, f = clamp(u, 0, 1) * n, i = Math.min(n - 1, Math.floor(f)), r = f - i, a = SWALLOW_PATH[i], b = SWALLOW_PATH[i + 1]; return [a[0] + (b[0] - a[0]) * r, a[1] + (b[1] - a[1]) * r]; }
+// «рентген»: полупрозрачное тело, белый скелет, цветные органы. o.fob — где Fobbin на пути (0 — пасть, 1 — желудок), o.fobExpr
+function drawWhaleXray(g, x, y, k, t, o = {}) {
+  const s = k, ink = Math.max(2, 0.04 * s), fl = Math.sin(t * 2.2 + (o.seed ?? 0)) * 0.5;
+  g.save(); g.translate(x, y); if (o.flip) g.scale(-1, 1); g.rotate(o.rot ?? 0); g.lineJoin = "round"; g.lineCap = "round";
+  const body = () => { g.beginPath(); g.moveTo(-6.4 * s, -0.9 * s); g.quadraticCurveTo(-6.5 * s, -1.75 * s, -5.4 * s, -1.75 * s); g.lineTo(-2.0 * s, -1.8 * s);
+    g.quadraticCurveTo(1.5 * s, -1.75 * s, 3.4 * s, -0.95 * s); g.quadraticCurveTo(4.8 * s, -0.4 * s, 5.8 * s, 0.05 * s); g.lineTo(5.8 * s, 0.35 * s);
+    g.quadraticCurveTo(3.5 * s, 0.9 * s, 0.5 * s, 1.35 * s); g.quadraticCurveTo(-1.5 * s, 1.5 * s, -2.4 * s, 1.0 * s); g.lineTo(-6.0 * s, 0.85 * s); g.quadraticCurveTo(-6.45 * s, 0.6 * s, -6.4 * s, -0.9 * s); g.closePath(); };
+  const glass = "rgba(150,215,255,0.9)";
+  // хвост и нижняя челюсть — контуром
+  g.fillStyle = "rgba(20,50,90,0.55)"; g.strokeStyle = glass; g.lineWidth = ink;
+  g.beginPath(); g.moveTo(5.6 * s, 0.1 * s); g.quadraticCurveTo(6.6 * s, (-0.9 + fl) * s, 7.4 * s, (-1.4 + fl * 1.4) * s); g.quadraticCurveTo(6.9 * s, fl * 0.6 * s, 7.4 * s, (1.4 + fl * 1.4) * s); g.quadraticCurveTo(6.6 * s, (0.9 + fl) * s, 5.6 * s, 0.25 * s); g.closePath(); g.fill(); g.stroke();
+  g.beginPath(); g.moveTo(-2.4 * s, 0.8 * s); g.lineTo(-6.1 * s, 0.9 * s); g.quadraticCurveTo(-6.35 * s, 1.07 * s, -6.0 * s, 1.2 * s); g.lineTo(-2.4 * s, 1.35 * s); g.closePath(); g.fill(); g.stroke();
+  g.fillStyle = "rgba(20,50,90,0.6)"; body(); g.fill();
+  g.save(); body(); g.clip();
+  // спермацетовый орган в голове
+  g.fillStyle = "rgba(255,214,120,0.35)"; g.strokeStyle = "rgba(255,214,120,0.8)"; g.lineWidth = ink * 0.7; g.beginPath(); g.ellipse(-4.2 * s, -1.0 * s, 2.0 * s, 0.6 * s, 0, 0, 7); g.fill(); g.stroke();
+  // лёгкие, сердце
+  g.fillStyle = "rgba(255,150,175,0.45)"; g.strokeStyle = "rgba(255,170,190,0.9)"; g.beginPath(); g.ellipse(-0.6 * s, -0.75 * s, 1.3 * s, 0.42 * s, 0.05, 0, 7); g.fill(); g.stroke();
+  g.fillStyle = "rgba(235,70,80,0.75)"; g.strokeStyle = "rgba(255,140,140,0.95)"; g.beginPath(); g.ellipse(-1.55 * s, 0.25 * s, 0.32 * s, 0.26 * s, 0.4, 0, 7); g.fill(); g.stroke();
+  // пищевод и желудок: три камеры (вторая — с кислотой)
+  g.strokeStyle = "rgba(240,140,160,0.75)"; g.lineWidth = 0.32 * s; g.beginPath(); SWALLOW_PATH.forEach(([px, py], i) => (i ? g.lineTo(px * s, py * s) : g.moveTo(px * s, py * s))); g.stroke();
+  for (const [cx, cy, r, c] of [[0.55, 0.55, 0.62, "rgba(240,140,160,0.5)"], [1.6, 0.72, 0.55, "rgba(150,220,80,0.55)"], [2.5, 0.58, 0.42, "rgba(240,140,160,0.45)"]]) {
+    g.fillStyle = c; g.strokeStyle = "rgba(255,200,210,0.9)"; g.lineWidth = ink * 0.8; g.beginPath(); g.ellipse(cx * s, cy * s, r * s, r * 0.8 * s, 0, 0, 7); g.fill(); g.stroke(); }
+  g.strokeStyle = "rgba(240,170,150,0.6)"; g.lineWidth = 0.12 * s; g.beginPath(); for (let i = 0; i <= 20; i++) { const xx = 3.0 + i * 0.09, yy = 0.5 + Math.sin(i * 1.3) * 0.18; i ? g.lineTo(xx * s, yy * s) : g.moveTo(xx * s, yy * s); } g.stroke();
+  // скелет: череп, позвоночник, рёбра, кости плавника
+  g.fillStyle = "rgba(250,248,240,0.5)"; g.strokeStyle = "rgba(250,248,240,0.9)"; g.lineWidth = ink * 0.6;
+  g.beginPath(); g.moveTo(-5.9 * s, 0.5 * s); g.quadraticCurveTo(-4.0 * s, -0.25 * s, -2.0 * s, -0.55 * s); g.quadraticCurveTo(-1.6 * s, -0.2 * s, -2.1 * s, 0.6 * s); g.quadraticCurveTo(-4.0 * s, 0.75 * s, -5.9 * s, 0.75 * s); g.closePath(); g.fill(); g.stroke();
+  g.fillStyle = "rgba(20,50,90,0.8)"; g.beginPath(); g.ellipse(-2.5 * s, 0.05 * s, 0.22 * s, 0.16 * s, 0, 0, 7); g.fill(); g.stroke(); g.fillStyle = "rgba(250,248,240,0.95)";   // глазница
+  const spine = (u) => { const xx = -1.9 + u * 7.5; return [xx, -0.5 + u * u * 0.65 + Math.sin(u * 3) * 0.08]; };
+  for (let i = 0; i <= 40; i++) { const [vx, vy] = spine(i / 40), r = (0.16 - i * 0.0028) * s; g.beginPath(); g.roundRect(vx * s - r * 0.8, vy * s - r, r * 1.6, r * 2, r * 0.4); g.fill(); g.stroke(); }
+  g.strokeStyle = "rgba(250,248,240,0.9)"; g.lineWidth = 0.07 * s;
+  for (let i = 0; i < 11; i++) { const [rx, ry] = spine(0.02 + i * 0.022); g.beginPath(); g.moveTo(rx * s, ry * s); g.quadraticCurveTo((rx + 0.35) * s, (ry + 0.6) * s, (rx + 0.1) * s, (ry + 1.15 - i * 0.03) * s); g.stroke(); }
+  g.restore();
+  g.lineWidth = 0.06 * s; g.strokeStyle = "rgba(250,248,240,0.9)";
+  g.beginPath(); g.moveTo(-1.5 * s, 0.95 * s); g.lineTo(-1.15 * s, 1.35 * s); for (let i = 0; i < 4; i++) { g.moveTo(-1.15 * s, 1.35 * s); g.lineTo((-1.0 + i * 0.12) * s, (1.65 + i * 0.02) * s); } g.stroke();
+  g.lineWidth = 0.08 * s; g.beginPath(); g.moveTo(-2.4 * s, 1.05 * s); g.lineTo(-6.0 * s, 1.05 * s); g.stroke();   // кость нижней челюсти
+  g.strokeStyle = glass; g.lineWidth = ink; body(); g.stroke();
+  // Fobbin внутри: съезжает по пути, свернувшись
+  if (o.fob != null) { const [fx, fy] = swallowAt(o.fob), hh = 1.0 * s;
+    g.save(); g.translate(fx * s, fy * s); g.rotate(-(o.rot ?? 0) - 0.5 + Math.sin(t * 5) * 0.2); fobbinGear(g, 0, hh * 0.5, hh, t, { expr: o.fobExpr ?? "shock", noFloor: true }); g.restore(); }
+  g.restore();
+}
+// плоский Fobbin в маске и ластах (для рентгена и схем)
+function fobbinGear(g, x, y, h, t, pose) { fobbinSprite(g, x, y, h, pose); const k = h / PLANE_H, top = y - h; DIVE_GEAR(g, x, top, k, t, "front"); }
+
+// ------------------------------------------------ снаряжение ныряльщика: маска с трубкой + ласты (props "front")
+// ласты повторяют движение ступней (doodle.js): при run > 0 ноги работают — у плывущего это и есть «работа ластами»
+const divingGear = (seed = 3, run = null) => { const mask = snorkelProp(999);
+  return (g, fx, ty, k, t, layer) => { if (layer !== "front") return;
+    const P = loc(fx, ty, k), tt = Math.floor((t * 30) / 2) * 2 / 30, st = run ? valAt(tt, run, 0) : 0;
+    for (const sd of [1, -1]) { const ph = tt * 13 + seed + (sd > 0 ? 0 : Math.PI), fxx = sd * 0.08 + st * 0.16 * Math.sin(ph), fz = 0.03 + st * 0.09 * Math.max(0, Math.cos(ph));
+      const [ax, ay] = P(fxx + 0.01, fz), [bx, by] = P(fxx + sd * 0.03 + st * 0.06 * Math.sin(ph + 0.6), fz - 0.36);
+      const nx = (by - ay), ny = -(bx - ax), nl = Math.hypot(nx, ny) || 1, wa = 0.05 * k, wb = 0.1 * k;
+      g.fillStyle = "#2f6fd6"; g.strokeStyle = INKC; g.lineWidth = Math.max(2, 0.014 * k);
+      g.beginPath(); g.moveTo(ax + (nx / nl) * wa, ay + (ny / nl) * wa); g.lineTo(bx + (nx / nl) * wb, by + (ny / nl) * wb); g.quadraticCurveTo(bx + (bx - ax) * 0.12, by + (by - ay) * 0.12, bx - (nx / nl) * wb, by - (ny / nl) * wb);
+      g.lineTo(ax - (nx / nl) * wa, ay - (ny / nl) * wa); g.closePath(); g.fill(); g.stroke();
+      g.strokeStyle = "rgba(255,255,255,0.5)"; g.beginPath(); g.moveTo((ax + bx) / 2, (ay + by) / 2); g.lineTo(bx, by); g.stroke(); }
+    mask(g, fx, ty, k, t, layer); }; };
+const DIVE_GEAR = divingGear();

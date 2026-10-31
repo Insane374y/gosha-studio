@@ -35,7 +35,7 @@ function drawDoodle(ctx, look, p) {
   const bh = H * sq, bw = W / Math.sqrt(sq);
   const B = (x, z) => { const c = Math.cos(lean), s = Math.sin(lean); return [x * c + z * s, hip - x * s + z * c]; };
   const stroke = (w, col = INK) => { ctx.strokeStyle = col; ctx.lineWidth = w * K; };
-  ctx.fillStyle = "rgba(0,0,0,0.18)"; ctx.beginPath(); ctx.ellipse(X(0), Y(0.01), W * 0.95 * K, 0.035 * K, 0, 0, Math.PI * 2); ctx.fill();
+  if (!p.noFloor) { ctx.fillStyle = "rgba(0,0,0,0.18)"; ctx.beginPath(); ctx.ellipse(X(0), Y(0.01), W * 0.95 * K, 0.035 * K, 0, 0, Math.PI * 2); ctx.fill(); }
   const limb = (a, b, bend) => {
     const dx = b[0] - a[0], dz = b[1] - a[1];
     const cx = (a[0] + b[0]) / 2 - dz * bend, cz = (a[1] + b[1]) / 2 + dx * bend;
